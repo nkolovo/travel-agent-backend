@@ -7,7 +7,7 @@ import com.travelagent.app.services.ItemService;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
-//testing
+
 @RestController
 @RequestMapping("/api/items")
 public class ItemController {
