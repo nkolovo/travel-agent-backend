@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -124,6 +125,7 @@ public class ItineraryController {
             System.out.println("Image string: " + coverImage);
             itinerary.setImage(Base64.getDecoder().decode(coverImage)); // If storing images as bytes
             System.out.println("Image bytes: " + itinerary.getImage());
+            itinerary.setEditedDate(LocalDateTime.now());
             itineraryService.saveItinerary(itinerary);
             return ResponseEntity.ok("Itinerary updated successfully.");
         } catch (Exception e) {
@@ -184,13 +186,18 @@ public class ItineraryController {
 
     }
 
-    @PostMapping("/add/itinerary/{itineraryId}")
+    @PostMapping("/add/date/{itineraryId}")
     public Date AddDateToItinerary(@PathVariable Long itineraryId, @RequestBody Date date) {
         return itineraryService.addDateToItinerary(itineraryId, date);
     }
 
-    @PostMapping("/remove/{dateId}/itinerary/{itineraryId}")
-    public Date RemoveDateFromItinerary(@PathVariable Long dateId, @PathVariable Long itineraryId) {
+    @PatchMapping("/update/date")
+    public Date UpdateDateForItinerary(@RequestBody Date date) {
+        return itineraryService.updateDateForItinerary(date);
+    }
+
+    @PostMapping("/remove/date/{dateId}/{itineraryId}")
+    public boolean RemoveDateFromItinerary(@PathVariable Long dateId, @PathVariable Long itineraryId) {
         return itineraryService.removeDateFromItinerary(dateId, itineraryId);
     }
 }

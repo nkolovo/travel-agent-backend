@@ -20,7 +20,7 @@ public class ItineraryService {
     }
 
     public List<Itinerary> getAllItineraries() {
-        return itineraryRepository.findAll();
+        return itineraryRepository.findAllByOrderByEditedDateDesc();
     }
 
     public List<Itinerary> getItinerariesByFilters(String reservationNumber, String leadName) {
@@ -57,36 +57,31 @@ public class ItineraryService {
     }
 
     public Date addDateToItinerary(Long itineraryId, Date date) {
-        Date newDate = dateRepository.save(date);
-        Optional<Itinerary> itineraryOpt = itineraryRepository.findById(itineraryId);
-        if (itineraryOpt.isPresent()) {
-            Itinerary itinerary = itineraryOpt.get();
-            List<Date> itineraryDates = itinerary.getDates();
-            itineraryDates.add(newDate);
-            itinerary.setDates(itineraryDates);
-            return newDate;
-        }
-        throw new RuntimeException("Could not save date to itinerary");
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+        date.setItinerary(itinerary);
+        return dateRepository.save(date);
     }
 
-    public Date removeDateFromItinerary(Long dateId, Long itineraryId) {
-        Optional<Itinerary> itineraryOpt = itineraryRepository.findById(itineraryId);
-        if (itineraryOpt.isPresent()) {
-            Itinerary itinerary = itineraryOpt.get();
-            List<Date> dates = itinerary.getDates();
+    public Date updateDateForItinerary(Date date) {
+        Date existingDate = dateRepository.findById(date.getId())
+                .orElseThrow(() -> new RuntimeException("Could not find date with ID " + date.getId()));
+        existingDate.setName(date.getName());
+        existingDate.setLocation(date.getLocation());
+        existingDate.setDate(date.getDate());
+        return dateRepository.save(existingDate);
+    }
 
-            // Find the date that matches the dateId and remove it
-            Date dateToRemove = dates.stream()
-                    .filter(date -> date.getId().equals(dateId))
-                    .findFirst()
-                    .orElse(null);
-
-            if (dateToRemove != null) {
-                dates.remove(dateToRemove);
-                itinerary.setDates(dates);
-                return dateToRemove;
-            }
+    public boolean removeDateFromItinerary(Long dateId, Long itineraryId) {
+        System.out.println("Removing date: " + dateId + " from itinerary: " + itineraryId);
+        try {
+            itineraryRepository.findById(itineraryId).ifPresent(itinerary -> {
+                itinerary.getDates().removeIf(date -> date.getId().equals(dateId));
+                itineraryRepository.save(itinerary);
+            });
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not remove date from itinerary, exception: " + e.getMessage());
         }
-        throw new RuntimeException("Could not remove date from itinerary");
     }
 }
