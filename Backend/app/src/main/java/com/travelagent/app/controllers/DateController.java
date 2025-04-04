@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/dates")
 public class DateController {

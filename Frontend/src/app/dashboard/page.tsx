@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [newItinerary, setNewItinerary] = useState({
     agent: "", // Autofilled from logged-in user
     createdDate: new Date().toISOString().split("T")[0], // Today's date
+    editedDate: new Date().toISOString().replace("T", " ").replace("Z", "").split(".")[0], // Today's date
     reservationNumber: "", // To be fetched from the database
     leadName: "",
     numTravelers: 0
@@ -91,6 +92,7 @@ export default function Dashboard() {
     })
       .then((res) => res.json())
       .then((data) => {
+        console.log(data);
         setItineraries(data);
       })
       .catch((err) => console.error("Error fetching itineraries:", err));
@@ -156,6 +158,7 @@ export default function Dashboard() {
     const itinerary: Itinerary = {
       agent: newItinerary.agent,
       createdDate: newItinerary.createdDate,
+      editedDate: newItinerary.editedDate,
       reservationNumber: newItinerary.reservationNumber,
       leadName: newItinerary.leadName,
       numTravelers: newItinerary.numTravelers,
@@ -168,6 +171,8 @@ export default function Dashboard() {
         username: newItinerary.agent
       }
     };
+
+    console.log(itinerary);
 
     const response = await fetch("http://localhost:8080/api/itineraries/create", {
       method: "POST",
@@ -268,6 +273,7 @@ export default function Dashboard() {
                       value = value ? `$${value.toLocaleString()}` : "N/A";
                     } else if (property === "docsSent") {
                       value = value ? "Yes" : "No";
+                      return <td key={col} className={`p-2 border ${value === "Yes" ? 'bg-green-500' : 'bg-red-500 text-white'}`}>{value.toString()}</td>;
                     } else {
                       value = value ?? "N/A";
                     }

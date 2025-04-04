@@ -10,6 +10,8 @@ import java.util.Optional;
 public interface ItineraryRepository extends JpaRepository<Itinerary, Long> {
     Optional<Itinerary> findById(Long id);
 
+    List<Itinerary> findAllByOrderByEditedDateDesc();
+
     @Query(value = "SELECT reservation_number FROM itinerary WHERE CAST(SUBSTRING(reservation_number, 3) AS INT) = (SELECT MAX(CAST(SUBSTRING(reservation_number, 3) AS INT)) FROM itinerary)", nativeQuery = true)
     String findNewestReservationNumber();
 

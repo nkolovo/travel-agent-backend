@@ -20,7 +20,7 @@ public class Date {
     private String date;
 
     @ManyToOne
-    @JoinColumn(name = "itinerary_id")
+    @JoinColumn(name = "itinerary_id", nullable = false)
     @JsonBackReference("itinerary-date")
     private Itinerary itinerary;
 
@@ -74,5 +74,13 @@ public class Date {
 
     public void setItems(Set<Item> items) {
         this.items = items;
+    }
+
+    public Itinerary getItinerary() {
+        return itinerary;
+    }
+
+    public void setItinerary(Itinerary itinerary) {
+        this.itinerary = itinerary;
     }
 }
