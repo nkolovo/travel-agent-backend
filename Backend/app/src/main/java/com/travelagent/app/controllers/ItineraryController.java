@@ -41,7 +41,6 @@ public class ItineraryController {
     @GetMapping
     public List<Itinerary> getAllItineraries(@RequestParam(required = false) String reservationNumber,
             @RequestParam(required = false) String leadName) {
-        System.out.println("Received reservationNumber: " + reservationNumber + ", leadName: " + leadName);
         if (reservationNumber != null || leadName != null) {
             // Call the service to filter itineraries based on the reservationNumber and/or
             // leadName
