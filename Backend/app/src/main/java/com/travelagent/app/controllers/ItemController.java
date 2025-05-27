@@ -1,7 +1,6 @@
 package com.travelagent.app.controllers;
 
 import com.travelagent.app.models.Item;
-import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.services.ItemService;
 
 import java.util.List;
@@ -23,11 +22,9 @@ public class ItemController {
         return itemService.getAllItems();
     }
 
-    @PostMapping("/add")
-    public String AddItem(@RequestBody Item item) {
-        if (itemService.addItem(item))
-            return "Item successfully added";
-        return "Could not add item";
+    @PostMapping("/save")
+    public Long AddItem(@RequestBody Item item) {
+        return itemService.addItem(item);
     }
 
     @PostMapping("/remove/{id}")

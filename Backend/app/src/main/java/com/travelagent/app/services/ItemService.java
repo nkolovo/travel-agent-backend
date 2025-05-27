@@ -21,9 +21,8 @@ public class ItemService {
         return itemRepository.findAll();
     }
 
-    public boolean addItem(Item item) {
-        itemRepository.save(item);
-        return true;
+    public Long addItem(Item item) {
+        return itemRepository.save(item).getId();
     }
 
     public void removeItem(Long id) {
