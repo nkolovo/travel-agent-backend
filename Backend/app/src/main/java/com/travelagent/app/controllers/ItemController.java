@@ -23,13 +23,17 @@ public class ItemController {
     }
 
     @PostMapping("/save")
-    public Long AddItem(@RequestBody Item item) {
-        return itemService.addItem(item);
+    public Long SaveItem(@RequestBody Item item) { 
+        System.out.println("Saving item: " + item.getId());
+        System.out.println("Saving item: " + item.getLocation());
+        System.out.println("Saving item: " + item.getCategory());
+        System.out.println("Saving item: " + item.getName());
+        System.out.println("Saving item: " + item.getDescription());
+        return itemService.saveItem(item);
     }
 
     @PostMapping("/remove/{id}")
-    public String removeItem(@PathVariable Long id) {
+    public void removeItem(@PathVariable Long id) {
         itemService.removeItem(id);
-        return "Item successfully removed";
     }
 }

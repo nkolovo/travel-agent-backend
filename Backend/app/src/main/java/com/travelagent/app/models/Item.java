@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "items")
 public class Item {
@@ -18,6 +20,7 @@ public class Item {
     private String description;
 
     @ManyToMany(mappedBy = "items")
+    @JsonBackReference("date-item")
     private Set<Date> dates = new HashSet<>();
 
     // Constructors
