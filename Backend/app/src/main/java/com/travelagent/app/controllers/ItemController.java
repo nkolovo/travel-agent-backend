@@ -24,11 +24,6 @@ public class ItemController {
 
     @PostMapping("/save")
     public Long SaveItem(@RequestBody Item item) { 
-        System.out.println("Saving item: " + item.getId());
-        System.out.println("Saving item: " + item.getLocation());
-        System.out.println("Saving item: " + item.getCategory());
-        System.out.println("Saving item: " + item.getName());
-        System.out.println("Saving item: " + item.getDescription());
         return itemService.saveItem(item);
     }
 
