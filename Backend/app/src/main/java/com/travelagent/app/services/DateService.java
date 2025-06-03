@@ -2,6 +2,7 @@ package com.travelagent.app.services;
 
 import com.travelagent.app.models.Item;
 import com.travelagent.app.models.Itinerary;
+import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItemWithCustomDescriptionDto;
 import com.travelagent.app.models.CustomItem;
 import com.travelagent.app.models.Date;
@@ -33,11 +34,12 @@ public class DateService {
         this.customItemRepository = customItemRepository;
     }
 
-    public List<Date> getDatesForItinerary(Long itineraryId) {
-        Optional<List<Date>> dates = dateRepository.findByItineraryId(itineraryId);
-        if (!dates.isPresent())
-            return null;
-        return dates.get();
+    public List<DateDto> getDatesForItinerary(Long itineraryId) {
+        List<Date> dates = dateRepository.findAllByItineraryId(itineraryId);
+        List<DateDto> dateDtos = dates.stream()
+                .map(date -> new DateDto(date.getId(), date.getName(), date.getLocation(), date.getDate()))
+                .toList();
+        return dateDtos;
     }
 
     public List<ItemWithCustomDescriptionDto> getItemsForDate(Long dateId) {

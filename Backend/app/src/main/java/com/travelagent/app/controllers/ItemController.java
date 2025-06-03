@@ -1,5 +1,6 @@
 package com.travelagent.app.controllers;
 
+import com.travelagent.app.dto.ItemDto;
 import com.travelagent.app.models.Item;
 import com.travelagent.app.services.ItemService;
 
@@ -23,8 +24,8 @@ public class ItemController {
     }
 
     @PostMapping("/save")
-    public Long SaveItem(@RequestBody Item item) { 
-        return itemService.saveItem(item);
+    public void SaveItem(@RequestBody ItemDto item) { 
+        itemService.saveItem(item);
     }
 
     @PostMapping("/remove/{id}")

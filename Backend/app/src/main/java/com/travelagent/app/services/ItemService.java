@@ -1,5 +1,6 @@
 package com.travelagent.app.services;
 
+import com.travelagent.app.dto.ItemDto;
 import com.travelagent.app.models.Item;
 
 import com.travelagent.app.repositories.ItemRepository;
@@ -25,12 +26,23 @@ public class ItemService {
         return sortedItems;
     }
 
-    public Long saveItem(Item item) {
-        return itemRepository.save(item).getId();
+    public void saveItem(ItemDto item) {
+        Item itemToSave = mapToItem(item);
+        itemRepository.save(itemToSave);
+    }
+
+    private Item mapToItem(ItemDto item) {
+        Item itemToSave = new Item();
+        itemToSave.setId(item.getId());
+        itemToSave.setCountry(item.getCountry());
+        itemToSave.setLocation(item.getLocation());
+        itemToSave.setCategory(item.getCategory());
+        itemToSave.setName(item.getName());
+        itemToSave.setDescription(item.getDescription());
+        return itemToSave;
     }
 
     public void removeItem(Long id) {
         itemRepository.deleteById(id);
     }
-
 }
