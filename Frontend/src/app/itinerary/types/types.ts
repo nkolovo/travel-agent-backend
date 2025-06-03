@@ -36,8 +36,7 @@ export interface Itinerary {
   docsSent?: boolean;
   image?: string | null;
   imageType?: string;
-  user: User;
-  client: Client;
+  client: String;
   dates?: Date[] | null;
 }
 
@@ -49,13 +48,18 @@ export interface Date {
 }
 
 export interface Item {
-  id: number;
+  id?: number;
+  country: string;
+  location: string;
+  category: string;
   name: string;
   description: string;
-  location: string;
 }
 
 export interface Activity {
-  subheading: string;
+  id?: number;
+  date: Date;
+  item: Item;
+  name: string;
   description: string;
 }

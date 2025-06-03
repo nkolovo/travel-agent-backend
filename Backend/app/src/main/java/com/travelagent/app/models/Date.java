@@ -29,6 +29,7 @@ public class Date {
             joinColumns = @JoinColumn(name = "date_id"), // Foreign key for Date
             inverseJoinColumns = @JoinColumn(name = "item_id") // Foreign key for Item
     )
+    @JsonManagedReference("date-item")
     private Set<Item> items = new HashSet<>(); // Many-to-Many relationship
 
     // Constructors

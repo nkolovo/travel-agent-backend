@@ -16,14 +16,13 @@ export default function Header({ itineraryId }: { itineraryId: number }) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   // Refs to track previous values
+  const isFirstRender = useRef(true);
   const prevTitle = useRef(title);
   const prevTripCost = useRef(tripCost);
   const prevCoverImage = useRef(coverImage);
 
   const saveChanges = async () => {
-    console.log("Saving changes");
     const updatedData = { itineraryId, title, tripCost, coverImage };
-    console.log(updatedData);
     try {
       await fetch("http://localhost:8080/api/itineraries/update", {
         method: "PATCH",
@@ -44,7 +43,6 @@ export default function Header({ itineraryId }: { itineraryId: number }) {
 
   useEffect(() => {
     const fetchItinerary = async () => {
-      console.log("From Header: " + itineraryId);
       await fetch(`http://localhost:8080/api/itineraries/${itineraryId}`, {
         method: "GET",
         headers: {
@@ -59,26 +57,36 @@ export default function Header({ itineraryId }: { itineraryId: number }) {
         })
         .then(data => {
           setItineraryLoaded(true);
-          console.log(data);
           setItinerary(data)
           setTitle(data.name ?? title)
           setTripCost(data.tripPrice ?? tripCost)
           setCoverImage(data.image ?? coverImage)
+          prevTitle.current = data.name ?? title;
+          prevTripCost.current = data.tripPrice ?? tripCost;
+          prevCoverImage.current = data.image ?? coverImage;
         }).catch(error => console.error("Error fetching itinerary:", error))
+    };
+
+    if (!itineraryLoaded) {
+      fetchItinerary();
+      return;
     }
-    if (!itineraryLoaded)
-      fetchItinerary()
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     const timeout = setTimeout(() => {
-      if ( // Check every 2 seconds if changes occurred and save them
+      if (
         (title !== prevTitle.current ||
           tripCost !== prevTripCost.current ||
           coverImage !== prevCoverImage.current) && !isEditing
-      ) {
+      )
         saveChanges();
-      }
-    }, 2000)
-    return () => clearTimeout(timeout); // Cleanup timeout 
-  }, [title, tripCost, coverImage, isEditing])
+    }, 1000);
+    return () => clearTimeout(timeout);
+  }, [title, tripCost, coverImage, isEditing, itineraryLoaded]);
 
   const handleCoverImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

@@ -1,17 +1,8 @@
-package com.travelagent.app.models;
+package com.travelagent.app.dto;
 
-import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-@Entity
-@Table(name = "items")
-public class Item {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ItemDto {
     private Long id;
     private String country;
     private String location;
@@ -19,15 +10,19 @@ public class Item {
     private String name;
     private String description;
 
-    @ManyToMany(mappedBy = "items")
-    @JsonBackReference("date-item")
-    private Set<Date> dates = new HashSet<>();
-
-    // Constructors
-    public Item() {
+    public ItemDto() {
     }
 
-    // Getters and Setters
+    public ItemDto(Long id, String country, String location, String category, String name, String description,
+            List<Long> dateIds) {
+        this.id = id;
+        this.country = country;
+        this.location = location;
+        this.category = category;
+        this.name = name;
+        this.description = description;
+    }
+
     public Long getId() {
         return id;
     }
@@ -74,13 +69,5 @@ public class Item {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Set<Date> getDates() {
-        return dates;
-    }
-
-    public void setDates(Set<Date> dates) {
-        this.dates = dates;
     }
 }

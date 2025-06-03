@@ -1,7 +1,7 @@
 package com.travelagent.app.controllers;
 
+import com.travelagent.app.dto.ItemDto;
 import com.travelagent.app.models.Item;
-import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.services.ItemService;
 
 import java.util.List;
@@ -23,16 +23,13 @@ public class ItemController {
         return itemService.getAllItems();
     }
 
-    @PostMapping("/add")
-    public String AddItem(@RequestBody Item item) {
-        if (itemService.addItem(item))
-            return "Item successfully added";
-        return "Could not add item";
+    @PostMapping("/save")
+    public void SaveItem(@RequestBody ItemDto item) { 
+        itemService.saveItem(item);
     }
 
     @PostMapping("/remove/{id}")
-    public String removeItem(@PathVariable Long id) {
+    public void removeItem(@PathVariable Long id) {
         itemService.removeItem(id);
-        return "Item successfully removed";
     }
 }
