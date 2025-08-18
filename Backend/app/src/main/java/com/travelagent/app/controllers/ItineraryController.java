@@ -72,13 +72,12 @@ public class ItineraryController {
             }
 
             // Handle client relationship
-            if (itineraryDto.getClient() != null) {
-                Optional<Client> returningClient = clientService.getClientByName(itineraryDto.getClient());
-                if (returningClient.isPresent()) {
-                    Client client = returningClient.get();
-                    itinerary.setClient(client);
+            if (itineraryDto.getClientName() != null) {
+                Client returningClient = clientService.getClientByName(itineraryDto.getClientName());
+                if (returningClient != null) {
+                    itinerary.setClient(returningClient);
                 } else {
-                    Client savedClient = clientService.saveClient(new Client(itineraryDto.getClient()));
+                    Client savedClient = clientService.saveClient(new Client(itineraryDto.getClientName()));
                     itinerary.setClient(savedClient);
                 }
             }

@@ -21,6 +21,15 @@ public class CustomItem {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
+    @JsonProperty("counmtry")
+    private String country;
+
+    @JsonProperty("location")
+    private String location;
+
+    @JsonProperty("category")
+    private String category;
+
     @JsonProperty("name")
     private String name;
 
@@ -32,10 +41,10 @@ public class CustomItem {
     }
 
     // public CustomItem(Date date, Item item, String name, String description) {
-    //     this.date = date;
-    //     this.item = item;
-    //     this.name = name;
-    //     this.description = description;
+    // this.date = date;
+    // this.item = item;
+    // this.name = name;
+    // this.description = description;
     // }
 
     // Getters and setters...
@@ -57,6 +66,30 @@ public class CustomItem {
 
     public void setItem(Item item) {
         this.item = item;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getName() {

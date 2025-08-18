@@ -24,7 +24,7 @@ public class ItemController {
     }
 
     @PostMapping("/save")
-    public void SaveItem(@RequestBody ItemDto item) { 
+    public void saveItem(@RequestBody ItemDto item) { 
         itemService.saveItem(item);
     }
 

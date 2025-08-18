@@ -1,7 +1,5 @@
 package com.travelagent.app.dto;
 
-import java.util.List;
-
 public class ItemDto {
     private Long id;
     private String country;
@@ -13,8 +11,9 @@ public class ItemDto {
     public ItemDto() {
     }
 
-    public ItemDto(Long id, String country, String location, String category, String name, String description,
-            List<Long> dateIds) {
+    public ItemDto(Long id, String country,
+            String location, String category,
+            String name, String description) {
         this.id = id;
         this.country = country;
         this.location = location;

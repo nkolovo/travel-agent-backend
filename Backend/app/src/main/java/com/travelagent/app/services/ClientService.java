@@ -19,8 +19,20 @@ public class ClientService {
         return clientRepository.findAll();
     }
 
-    public Optional<Client> getClientByName(String name) {
-        return clientRepository.findByName(name);
+    public Client getClientById(Long id) {
+        Optional<Client> client = clientRepository.findById(id);
+        if (client.isPresent())
+            return client.get();
+        else
+            return null;
+    }
+
+    public Client getClientByName(String name) {
+        Optional<Client> client = clientRepository.findByName(name);
+        if (client.isPresent())
+            return client.get();
+        else
+            return null;
     }
 
     public Client saveClient(Client client) {

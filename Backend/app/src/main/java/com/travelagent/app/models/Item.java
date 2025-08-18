@@ -6,6 +6,8 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+//import com.fasterxml.jackson.annotation.JsonBackReference;
+
 @Entity
 @Table(name = "items")
 public class Item {
@@ -19,9 +21,13 @@ public class Item {
     private String name;
     private String description;
 
-    @ManyToMany(mappedBy = "items")
-    @JsonBackReference("date-item")
-    private Set<Date> dates = new HashSet<>();
+    // @ManyToMany(mappedBy = "items")
+    // @JsonBackReference("date-item")
+    // private Set<Date> dates = new HashSet<>();
+
+    @OneToMany(mappedBy = "item")
+    @JsonBackReference
+    private Set<DateItem> dateItems = new HashSet<>();
 
     // Constructors
     public Item() {
@@ -76,11 +82,19 @@ public class Item {
         this.description = description;
     }
 
-    public Set<Date> getDates() {
-        return dates;
+    // public Set<Date> getDates() {
+    // return dates;
+    // }
+
+    // public void setDates(Set<Date> dates) {
+    // this.dates = dates;
+    // }
+
+    public Set<DateItem> getDateItems() {
+        return dateItems;
     }
 
-    public void setDates(Set<Date> dates) {
-        this.dates = dates;
+    public void setDateItems(Set<DateItem> dateItems) {
+        this.dateItems = dateItems;
     }
 }

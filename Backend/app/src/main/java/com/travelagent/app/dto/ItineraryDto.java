@@ -25,7 +25,6 @@ public class ItineraryDto {
     private boolean docsSent;
     private byte[] image;
     private String imageType;
-    private String client;
     private List<DateDto> dates;
 
     public ItineraryDto() {
@@ -197,12 +196,12 @@ public class ItineraryDto {
         this.imageType = imageType;
     }
 
-    public String getClient() {
-        return client;
+    public String getClientName() {
+        return leadName;
     }
 
-    public void setClient(String client) {
-        this.client = client;
+    public void setClientName(String clientName) {
+        this.leadName = clientName;
     }
 
     public List<DateDto> getDates() {

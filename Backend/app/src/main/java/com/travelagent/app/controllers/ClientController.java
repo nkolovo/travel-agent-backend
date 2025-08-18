@@ -26,6 +26,11 @@ public class ClientController {
         return clientService.getClientById(id);
     }
 
+    @GetMapping("/{name}")
+    public Client getClientByName(@PathVariable String name) {
+        return clientService.getClientByName(name);
+    }
+
     @PostMapping
     public Client createClient(@RequestBody Client client) {
         return clientService.saveClient(client);
