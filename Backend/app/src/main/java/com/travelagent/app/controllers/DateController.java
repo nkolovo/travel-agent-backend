@@ -1,7 +1,7 @@
 package com.travelagent.app.controllers;
 
-import com.travelagent.app.dto.CustomItemDto;
-import com.travelagent.app.models.CustomItem;
+import com.travelagent.app.dto.DateItemDto;
+import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.services.DateService;
 
@@ -20,7 +20,7 @@ public class DateController {
     }
 
     @GetMapping("/items/{dateId}")
-    public List<CustomItemDto> getItemsForDate(@PathVariable Long dateId) {
+    public List<DateItemDto> getItemsForDate(@PathVariable Long dateId) {
         return dateService.getItemsForDate(dateId);
     }
 
@@ -34,8 +34,9 @@ public class DateController {
         dateService.removeItemFromDate(dateId, itemId);
     }
 
-    @PostMapping("saveCustomItem/{dateId}/item/{itemId}")
-    public CustomItem saveCustomItemToDate(@PathVariable Long dateId, @PathVariable Long itemId, @RequestBody CustomItemDto customItem) {
-        return dateService.saveCustomItemToDate(dateId, itemId, customItem);
+    @PostMapping("saveDateItem/{dateId}/item/{itemId}")
+    public DateItem saveDateItemToDate(@PathVariable Long dateId, @PathVariable Long itemId,
+            @RequestBody DateItemDto dateItem) {
+        return dateService.saveDateItemToDate(dateId, itemId, dateItem);
     }
 }

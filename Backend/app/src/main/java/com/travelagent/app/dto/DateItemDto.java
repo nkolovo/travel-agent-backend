@@ -1,6 +1,6 @@
 package com.travelagent.app.dto;
 
-public class CustomItemDto {
+public class DateItemDto {
     private Long id;
     private DateDto date;
     private ItemDto item;
@@ -11,10 +11,10 @@ public class CustomItemDto {
     private String description;
     private Short priority;
 
-    public CustomItemDto() {
+    public DateItemDto() {
     }
 
-    public CustomItemDto(Long id, DateDto date,
+    public DateItemDto(Long id, DateDto date,
             ItemDto item, String country,
             String location, String category,
             String name, String description,

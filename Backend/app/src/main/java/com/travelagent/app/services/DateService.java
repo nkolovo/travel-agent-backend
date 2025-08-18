@@ -1,14 +1,13 @@
 package com.travelagent.app.services;
 
 import com.travelagent.app.models.Item;
-import com.travelagent.app.dto.CustomItemDto;
+import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItemDto;
-import com.travelagent.app.models.CustomItem;
-import com.travelagent.app.models.Date;
 import com.travelagent.app.models.DateItem;
+import com.travelagent.app.models.Date;
 import com.travelagent.app.models.DateItemId;
-import com.travelagent.app.repositories.CustomItemRepository;
+import com.travelagent.app.repositories.DateItemRepository;
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItemRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
@@ -29,13 +28,13 @@ public class DateService {
 
     private final DateRepository dateRepository;
     private final ItemRepository itemRepository;
-    private final CustomItemRepository customItemRepository;
+    private final DateItemRepository dateItemRepository;
 
     public DateService(DateRepository dateRepository, ItemRepository itemRepository,
-            ItineraryRepository itineraryRepository, CustomItemRepository customItemRepository) {
+            ItineraryRepository itineraryRepository, DateItemRepository dateItemRepository) {
         this.dateRepository = dateRepository;
         this.itemRepository = itemRepository;
-        this.customItemRepository = customItemRepository;
+        this.dateItemRepository = dateItemRepository;
     }
 
     public List<DateDto> getDatesForItinerary(Long itineraryId) {
@@ -46,39 +45,38 @@ public class DateService {
         return dateDtos;
     }
 
-    public List<CustomItemDto> getItemsForDate(Long dateId) {
+    public List<DateItemDto> getItemsForDate(Long dateId) {
         Optional<Date> dateOpt = dateRepository.findById(dateId);
         if (dateOpt.isPresent()) {
             Set<Item> itemsSet = dateOpt.get().getDateItems()
                     .stream()
                     .map(DateItem::getItem)
                     .collect(Collectors.toSet());
-            List<CustomItem> customItems = customItemRepository.findByDateId(dateId);
+            List<DateItem> dateItems = dateItemRepository.findByDateId(dateId);
 
-            // Map itemId to CustomItem for quick lookup
-            Map<Long, CustomItem> customItemMap = new HashMap<>();
-            for (CustomItem ci : customItems) {
-                customItemMap.put(ci.getItem().getId(), ci);
+            // Map itemId to DateItem for quick lookup
+            Map<Long, DateItem> dateItemMap = new HashMap<>();
+            for (DateItem ci : dateItems) {
+                dateItemMap.put(ci.getItem().getId(), ci);
             }
 
-            List<CustomItemDto> result = new ArrayList<>();
+            List<DateItemDto> result = new ArrayList<>();
             for (Item item : itemsSet) {
-                String name = customItemMap.containsKey(item.getId())
-                        ? customItemMap.get(item.getId()).getName()
+                String name = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getName()
                         : item.getName();
-                String description = customItemMap.containsKey(item.getId())
-                        ? customItemMap.get(item.getId()).getDescription()
+                String description = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getDescription()
                         : item.getDescription();
-                Short priority = customItemMap.containsKey(item.getId())
-                        ? customItemMap.get(item.getId()).getPriority()
+                Short priority = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getPriority()
                         : dateOpt.get().getDateItems()
                                 .stream()
                                 .filter(di -> di.getItem().getId().equals(item.getId()))
                                 .findFirst()
                                 .map(DateItem::getPriority)
                                 .orElse(null);
-                System.out.println(priority);
-                result.add(new CustomItemDto(
+                result.add(new DateItemDto(
                         item.getId(),
                         convertToDto(dateOpt.get()),
                         convertToDto(item),
@@ -91,12 +89,8 @@ public class DateService {
             }
             // Sort the result by Priority
             if (result.size() >= 2)
-                result.sort(Comparator.comparing(CustomItemDto::getPriority,
+                result.sort(Comparator.comparing(DateItemDto::getPriority,
                         Comparator.nullsLast(Short::compareTo)));
-            for (int i = 0; i < result.size(); i++) {
-                System.out.println(
-                        result.get(i).getPriority() + " with name: " + result.get(i).getName() + " at index " + i);
-            }
             return result;
         }
         throw new RuntimeException("Date not found!");
@@ -114,7 +108,11 @@ public class DateService {
             dateItem.setId(new DateItemId(date.getId(), item.getId()));
             dateItem.setDate(date);
             dateItem.setItem(item);
-            System.out.println("Setting priority: " + priority);
+            dateItem.setCountry(item.getCountry());
+            dateItem.setLocation(item.getLocation());
+            dateItem.setCategory(item.getCategory());
+            dateItem.setName(item.getName());
+            dateItem.setDescription(item.getDescription());
             dateItem.setPriority(priority);
 
             date.getDateItems().add(dateItem);
@@ -127,22 +125,24 @@ public class DateService {
         throw new RuntimeException("Date or Item not found!");
     }
 
-    public CustomItem saveCustomItemToDate(Long dateId, Long itemId, CustomItemDto customItemDto) {
+    public DateItem saveDateItemToDate(Long dateId, Long itemId, DateItemDto dateItemDto) {
         Date date = dateRepository.findById(dateId)
                 .orElseThrow(() -> new RuntimeException("Could not find date with ID " + dateId));
-        System.out.println("Saving custom item");
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Could not find item with ID " + itemId));
-        CustomItem customItem = new CustomItem();
-        customItem.setDate(date);
-        customItem.setItem(item);
-        customItem.setCountry(customItemDto.getCountry());
-        customItem.setLocation(customItemDto.getLocation());
-        customItem.setCategory(customItemDto.getCategory());
-        customItem.setName(customItemDto.getName());
-        customItem.setDescription(customItemDto.getDescription());
-        customItem.setPriority(customItemDto.getPriority());
-        return customItemRepository.save(customItem);
+        DateItem dateItem = new DateItem();
+        System.out.println("Creating DateItem");
+        dateItem.setId(new DateItemId(dateId, itemId));
+        dateItem.setDate(date);
+        dateItem.setItem(item);
+        dateItem.setCountry(dateItemDto.getCountry());
+        dateItem.setLocation(dateItemDto.getLocation());
+        dateItem.setCategory(dateItemDto.getCategory());
+        dateItem.setName(dateItemDto.getName());
+        dateItem.setDescription(dateItemDto.getDescription());
+        dateItem.setPriority(dateItemDto.getPriority());
+        System.out.println("Saving DateItem");
+        return dateItemRepository.save(dateItem);
     }
 
     public void removeItemFromDate(Long dateId, Long itemId) {
@@ -155,9 +155,9 @@ public class DateService {
             date.getDateItems().removeIf(di -> di.getItem().getId().equals(itemId));
             dateRepository.save(date); // Update the relationship
 
-            // Remove any CustomItem for this date/item
-            customItemRepository.findByDateIdAndItemId(dateId, itemId)
-                    .ifPresent(customItemRepository::delete);
+            // Remove any DateItem for this date/item
+            dateItemRepository.findByDateIdAndItemId(dateId, itemId)
+                    .ifPresent(dateItemRepository::delete);
             return;
         }
         throw new RuntimeException("Date or Item not found!");
