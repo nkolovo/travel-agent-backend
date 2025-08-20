@@ -24,8 +24,9 @@ public class ItemController {
     }
 
     @PostMapping("/save")
-    public void saveItem(@RequestBody ItemDto item) { 
-        itemService.saveItem(item);
+    public Long saveItem(@RequestBody ItemDto item) {
+        Long id = itemService.saveItem(item);
+        return id;
     }
 
     @PostMapping("/remove/{id}")

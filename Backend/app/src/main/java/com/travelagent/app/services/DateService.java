@@ -114,7 +114,6 @@ public class DateService {
             dateItem.setName(item.getName());
             dateItem.setDescription(item.getDescription());
             dateItem.setPriority(priority);
-
             date.getDateItems().add(dateItem);
 
             // Save the DateItem using a DateItemRepository
@@ -131,7 +130,9 @@ public class DateService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Could not find item with ID " + itemId));
         DateItem dateItem = new DateItem();
-        System.out.println("Creating DateItem");
+        // If the DateItem already exists, retrieve it and get its original priority
+        Optional<DateItem> originalDateItem = dateItemRepository.findByDateIdAndItemId(dateId, itemId);
+        final Short originalPriority = originalDateItem.isPresent() ? originalDateItem.get().getPriority() : null;
         dateItem.setId(new DateItemId(dateId, itemId));
         dateItem.setDate(date);
         dateItem.setItem(item);
@@ -141,7 +142,20 @@ public class DateService {
         dateItem.setName(dateItemDto.getName());
         dateItem.setDescription(dateItemDto.getDescription());
         dateItem.setPriority(dateItemDto.getPriority());
-        System.out.println("Saving DateItem");
+
+        if (originalPriority != null) {
+            List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(dateId).stream()
+                    .filter(di -> di.getPriority() != null && dateItemDto.getPriority() != null
+                            && di.getPriority() >= dateItemDto.getPriority()
+                            && di.getPriority() < originalPriority
+                            && !di.getItem().getId().equals(itemId))
+                    .collect(Collectors.toList());
+
+            for (DateItem di : prioritiesToUpdate) {
+                di.setPriority((short) (di.getPriority() + 1));
+            }
+            dateItemRepository.saveAll(prioritiesToUpdate);
+        }
         return dateItemRepository.save(dateItem);
     }
 

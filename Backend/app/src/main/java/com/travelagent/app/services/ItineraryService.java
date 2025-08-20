@@ -3,13 +3,11 @@ package com.travelagent.app.services;
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItineraryDto;
 import com.travelagent.app.models.Date;
-import com.travelagent.app.models.Item;
 import com.travelagent.app.models.Itinerary;
 
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -84,7 +82,10 @@ public class ItineraryService {
                 .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
         itinerary.setEditedDate(LocalDateTime.now());
         Date dateToSave = mapToDate(date);
+        System.out.println(itinerary.getCreatedDate());
         dateToSave.setItinerary(itinerary);
+        System.out.println(itinerary.getCreatedDate());
+        System.out.println(dateToSave.getItinerary().getCreatedDate());
         return dateRepository.save(dateToSave);
     }
 

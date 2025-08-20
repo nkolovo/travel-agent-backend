@@ -25,7 +25,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/itineraries")
@@ -102,6 +101,7 @@ public class ItineraryController {
     @PatchMapping("/update")
     public ResponseEntity<String> updateItinerary(@RequestBody Map<String, Object> updates) {
         try {
+            System.out.println("Updating itinerary");
             String title = (String) updates.get("title");
             int tripCost = (int) updates.get("tripCost");
             String coverImage = (String) updates.get("coverImage");
@@ -195,6 +195,7 @@ public class ItineraryController {
     }
 
     private Itinerary mapToItinerary(ItineraryDto itineraryDto) {
+        System.out.println("Mapping ItineraryDto to Itinerary");
         Itinerary itinerary = new Itinerary();
         itinerary.setId(itineraryDto.getId());
         itinerary.setName(itineraryDto.getName());

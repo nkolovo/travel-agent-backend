@@ -26,9 +26,9 @@ public class ItemService {
         return sortedItems;
     }
 
-    public void saveItem(ItemDto item) {
+    public Long saveItem(ItemDto item) {
         Item itemToSave = mapToItem(item);
-        itemRepository.save(itemToSave);
+        return itemRepository.save(itemToSave).getId();
     }
 
     private Item mapToItem(ItemDto item) {

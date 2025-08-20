@@ -39,6 +39,7 @@ public class DateItem {
     private String name;
 
     @JsonProperty("description")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     // Constructors

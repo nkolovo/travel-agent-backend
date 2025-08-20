@@ -19,6 +19,7 @@ public class Item {
     private String location;
     private String category;
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     // @ManyToMany(mappedBy = "items")
