@@ -1,40 +1,27 @@
-package com.travelagent.app.models;
+package com.travelagent.app.dto;
 
-import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
-//import com.fasterxml.jackson.annotation.JsonBackReference;
-
-@Entity
-@Table(name = "items")
-public class Item {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class ItemDto {
     private Long id;
     private String country;
     private String location;
     private String category;
     private String name;
-    @Column(columnDefinition = "TEXT")
     private String description;
 
-    // @ManyToMany(mappedBy = "items")
-    // @JsonBackReference("date-item")
-    // private Set<Date> dates = new HashSet<>();
-
-    @OneToMany(mappedBy = "item")
-    @JsonBackReference
-    private Set<DateItem> dateItems = new HashSet<>();
-
-    // Constructors
-    public Item() {
+    public ItemDto() {
     }
 
-    // Getters and Setters
+    public ItemDto(Long id, String country,
+            String location, String category,
+            String name, String description) {
+        this.id = id;
+        this.country = country;
+        this.location = location;
+        this.category = category;
+        this.name = name;
+        this.description = description;
+    }
+
     public Long getId() {
         return id;
     }
@@ -81,21 +68,5 @@ public class Item {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    // public Set<Date> getDates() {
-    // return dates;
-    // }
-
-    // public void setDates(Set<Date> dates) {
-    // this.dates = dates;
-    // }
-
-    public Set<DateItem> getDateItems() {
-        return dateItems;
-    }
-
-    public void setDateItems(Set<DateItem> dateItems) {
-        this.dateItems = dateItems;
     }
 }

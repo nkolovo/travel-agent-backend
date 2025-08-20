@@ -23,4 +23,12 @@ public class Client {
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
     @JsonManagedReference("client-itinerary")
     private List<Itinerary> itineraries;
+
+    // Constructors
+    public Client() {
+    }
+
+    public Client(String name) {
+        this.name = name;
+    }
 }

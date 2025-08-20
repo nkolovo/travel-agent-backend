@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [newItinerary, setNewItinerary] = useState({
     agent: "", // Autofilled from logged-in user
     createdDate: new Date().toISOString().split("T")[0], // Today's date
+    editedDate: new Date().toISOString().replace("T", " ").replace("Z", "").split(".")[0], // Today's date
     reservationNumber: "", // To be fetched from the database
     leadName: "",
     numTravelers: 0
@@ -80,7 +81,6 @@ export default function Dashboard() {
     if (filters.reservationNumber || filters.leadName) {
       url += `?${new URLSearchParams(Object.entries(filters).filter(([, v]) => v?.trim())).toString()}`;
     }
-    console.log(url);
 
     fetch(url, {
       method: "GET",
@@ -97,7 +97,6 @@ export default function Dashboard() {
   };
 
   const handleSort = (column: keyof Itinerary) => {
-    console.log(column);
     const order = sortColumn === column && sortOrder === "asc" ? "desc" : "asc";
 
     setSortColumn(column);
@@ -156,17 +155,13 @@ export default function Dashboard() {
     const itinerary: Itinerary = {
       agent: newItinerary.agent,
       createdDate: newItinerary.createdDate,
+      editedDate: newItinerary.editedDate,
       reservationNumber: newItinerary.reservationNumber,
       leadName: newItinerary.leadName,
       numTravelers: newItinerary.numTravelers,
       tripPrice: 0,
       status: "Proposal",
-      client: {
-        name: newItinerary.leadName
-      },
-      user: {
-        username: newItinerary.agent
-      }
+      client: newItinerary.leadName,
     };
 
     const response = await fetch("http://localhost:8080/api/itineraries/create", {
@@ -268,6 +263,7 @@ export default function Dashboard() {
                       value = value ? `$${value.toLocaleString()}` : "N/A";
                     } else if (property === "docsSent") {
                       value = value ? "Yes" : "No";
+                      return <td key={col} className={`p-2 border ${value === "Yes" ? 'bg-green-500' : 'bg-red-500 text-white'}`}>{value.toString()}</td>;
                     } else {
                       value = value ?? "N/A";
                     }

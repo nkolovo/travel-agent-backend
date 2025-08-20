@@ -20,11 +20,19 @@ public class ClientService {
     }
 
     public Client getClientById(Long id) {
-        return clientRepository.findById(id).orElseThrow(() -> new RuntimeException("Client not found"));
+        Optional<Client> client = clientRepository.findById(id);
+        if (client.isPresent())
+            return client.get();
+        else
+            return null;
     }
 
-    public Optional<Client> getClientByName(String name) {
-        return clientRepository.findByName(name);
+    public Client getClientByName(String name) {
+        Optional<Client> client = clientRepository.findByName(name);
+        if (client.isPresent())
+            return client.get();
+        else
+            return null;
     }
 
     public Client saveClient(Client client) {

@@ -1,10 +1,16 @@
 package com.travelagent.app.services;
 
+import com.travelagent.app.dto.DateDto;
+import com.travelagent.app.dto.ItineraryDto;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.Itinerary;
+
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
+
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,13 +25,11 @@ public class ItineraryService {
         this.dateRepository = dateRepository;
     }
 
-    public List<Itinerary> getAllItineraries() {
-        return itineraryRepository.findAll();
+    public List<ItineraryDto> getAllItineraries() {
+        return itineraryRepository.findAllByOrderByEditedDateDesc();
     }
 
-    public List<Itinerary> getItinerariesByFilters(String reservationNumber, String leadName) {
-        System.out.println("In getItinerariesByFilters with reservationNumber: " + reservationNumber + " and leadName: "
-                + leadName);
+    public List<ItineraryDto> getItinerariesByFilters(String reservationNumber, String leadName) {
         if (reservationNumber != null && leadName != null) {
             return itineraryRepository.findByReservationNumberIgnoreCaseAndLeadNameContainingIgnoreCase(
                     reservationNumber,
@@ -35,13 +39,30 @@ public class ItineraryService {
         } else if (leadName != null) {
             return itineraryRepository.findByLeadNameContainingIgnoreCase(leadName);
         } else {
-            return itineraryRepository.findAll();
+            return itineraryRepository.findAllDtos();
         }
     }
 
-    public Itinerary getItineraryById(Long id) {
-        System.out.println("Finding itinerary with ID: " + id);
-        return itineraryRepository.findById(id).orElseThrow(() -> new RuntimeException("Itinerary not found"));
+    public ItineraryDto getItineraryById(Long id) {
+        Optional<ItineraryDto> itineraryDtoOpt = itineraryRepository.findByIdDto(id);
+        if (itineraryDtoOpt.isPresent()) {
+            ItineraryDto itineraryDto = itineraryDtoOpt.get();
+            List<Date> dates = dateRepository.findAllByItineraryId(id);
+            List<DateDto> dateDtos = dates.stream()
+                    .map(date -> {
+                        DateDto dateDto = new DateDto();
+                        dateDto.setId(date.getId());
+                        dateDto.setName(date.getName());
+                        dateDto.setLocation(date.getLocation());
+                        dateDto.setDate(date.getDate());
+                        return dateDto;
+                    })
+                    .toList();
+            itineraryDto.setDates(dateDtos);
+            return itineraryDto;
+        } else {
+            throw new RuntimeException("Could not find itinerary with ID " + id);
+        }
     }
 
     public String getLatestReservationNumber() {
@@ -56,37 +77,57 @@ public class ItineraryService {
         itineraryRepository.deleteById(id);
     }
 
-    public Date addDateToItinerary(Long itineraryId, Date date) {
-        Date newDate = dateRepository.save(date);
-        Optional<Itinerary> itineraryOpt = itineraryRepository.findById(itineraryId);
-        if (itineraryOpt.isPresent()) {
-            Itinerary itinerary = itineraryOpt.get();
-            List<Date> itineraryDates = itinerary.getDates();
-            itineraryDates.add(newDate);
-            itinerary.setDates(itineraryDates);
-            return newDate;
-        }
-        throw new RuntimeException("Could not save date to itinerary");
+    public Date addDateToItinerary(Long itineraryId, DateDto date) {
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+        itinerary.setEditedDate(LocalDateTime.now());
+        Date dateToSave = mapToDate(date);
+        System.out.println(itinerary.getCreatedDate());
+        dateToSave.setItinerary(itinerary);
+        System.out.println(itinerary.getCreatedDate());
+        System.out.println(dateToSave.getItinerary().getCreatedDate());
+        return dateRepository.save(dateToSave);
     }
 
-    public Date removeDateFromItinerary(Long dateId, Long itineraryId) {
-        Optional<Itinerary> itineraryOpt = itineraryRepository.findById(itineraryId);
-        if (itineraryOpt.isPresent()) {
-            Itinerary itinerary = itineraryOpt.get();
-            List<Date> dates = itinerary.getDates();
+    public DateDto updateDateForItinerary(DateDto dateDto) {
+        Date existingDate = dateRepository.findById(dateDto.getId())
+                .orElseThrow(() -> new RuntimeException("Could not find date with ID " + dateDto.getId()));
 
-            // Find the date that matches the dateId and remove it
-            Date dateToRemove = dates.stream()
-                    .filter(date -> date.getId().equals(dateId))
-                    .findFirst()
-                    .orElse(null);
+        existingDate.setName(dateDto.getName());
+        existingDate.setLocation(dateDto.getLocation());
+        existingDate.setDate(dateDto.getDate());
 
-            if (dateToRemove != null) {
-                dates.remove(dateToRemove);
-                itinerary.setDates(dates);
-                return dateToRemove;
-            }
+        Date savedDate = dateRepository.save(existingDate);
+        return mapToDateDto(savedDate);
+    }
+
+    public boolean removeDateFromItinerary(Long dateId, Long itineraryId) {
+        try {
+            itineraryRepository.findById(itineraryId).ifPresent(itinerary -> {
+                itinerary.getDates().removeIf(date -> date.getId().equals(dateId));
+                itineraryRepository.save(itinerary);
+            });
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not remove date from itinerary, exception: " + e.getMessage());
         }
-        throw new RuntimeException("Could not remove date from itinerary");
+    }
+
+    private Date mapToDate(DateDto dateDto) {
+        Date date = new Date();
+        date.setId(dateDto.getId());
+        date.setName(dateDto.getName());
+        date.setLocation(dateDto.getLocation());
+        date.setDate(dateDto.getDate());
+        return date;
+    }
+
+    private DateDto mapToDateDto(Date date) {
+        DateDto dateDto = new DateDto();
+        dateDto.setId(date.getId());
+        dateDto.setName(date.getName());
+        dateDto.setLocation(date.getLocation());
+        dateDto.setDate(date.getDate());
+        return dateDto;
     }
 }

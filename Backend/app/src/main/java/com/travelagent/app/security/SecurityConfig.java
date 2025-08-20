@@ -44,7 +44,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/clients/**", "/api/itineraries/**", "/api/dates/**", "api/items/**")
+                        .requestMatchers("/api/clients/**", "/api/itineraries/**", "/api/dates/**", "/api/items/**")
                         .hasAnyAuthority("ADMIN", "AGENT")
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
