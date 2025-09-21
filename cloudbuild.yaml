@@ -10,3 +10,6 @@ steps:
 images:
   # The final image that Cloud Run will deploy
   - 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
