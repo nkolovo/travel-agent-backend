@@ -1,0 +1,12 @@
+steps:
+  # Build the Docker image using your Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest', '.']
+
+  # Push the image to Google Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest']
+
+images:
+  # The final image that Cloud Run will deploy
+  - 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest'
