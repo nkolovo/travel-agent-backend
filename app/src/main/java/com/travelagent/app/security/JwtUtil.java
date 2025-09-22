@@ -1,6 +1,5 @@
 package com.travelagent.app.security;
 
-import com.travelagent.app.models.Role;
 import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,10 +14,10 @@ public class JwtUtil {
     @Value("${app.jwtExpirationMs}")
     private long expirationMs; // 60000 = 1 minute
 
-    public String generateToken(String username, Role role) {
+    public String generateToken(String username, String roleName) {
         return Jwts.builder()
                 .setSubject(username)
-                .claim("role", role)
+                .claim("role", roleName)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(SignatureAlgorithm.HS256, secret)
