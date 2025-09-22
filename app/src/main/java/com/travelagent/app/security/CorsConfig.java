@@ -13,7 +13,8 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000") // Allow frontend
+                        .allowedOrigins("http://localhost:3000",
+                                "https://travel-agent-app-421736167284.europe-west8.run.app") // Allow local & prod
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS") // Allow OPTIONS
                         .allowedHeaders("Content-Type", "Authorization")
                         .allowCredentials(true);
