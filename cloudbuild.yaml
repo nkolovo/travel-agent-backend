@@ -1,14 +1,25 @@
 steps:
-  # Build the Docker image using your Dockerfile
+  # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest', '.']
 
-  # Push the image to Google Container Registry
+  # Push the image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest']
 
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run', 'deploy', 'travel-agent-app',
+        '--image', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest',
+        '--region', 'europe-west8',
+        '--platform', 'managed',
+        '--allow-unauthenticated'
+      ]
+
 images:
-  # The final image that Cloud Run will deploy
   - 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest'
 
 options:
