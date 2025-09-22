@@ -58,11 +58,6 @@ public class Itinerary {
     private String status;
     private boolean docsSent;
 
-    @Column(name = "image", columnDefinition = "BYTEA", nullable = true)
-    private byte[] image;
-
-    private String imageType;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference("user-itinerary")
@@ -77,23 +72,11 @@ public class Itinerary {
     @JsonManagedReference("itinerary-date")
     private List<Date> dates;
 
+    // ...existing code...
+
+    @Column(name = "image_object_name")
+    private String imageObjectName;
+
     public Itinerary() {
-    }
-
-    // Getters and Setters
-    public String getImageType() {
-        return imageType;
-    }
-
-    public void setImageType(String imageType) {
-        this.imageType = imageType;
-    }
-
-    public byte[] getImage() {
-        return image;
-    }
-
-    public void setImage(byte[] image) {
-        this.image = image;
     }
 }

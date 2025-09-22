@@ -30,6 +30,9 @@ public class Item {
     @JsonBackReference
     private Set<DateItem> dateItems = new HashSet<>();
 
+    @Column(name = "image_object_name")
+    private String imageObjectName;
+
     // Constructors
     public Item() {
     }
@@ -83,19 +86,19 @@ public class Item {
         this.description = description;
     }
 
-    // public Set<Date> getDates() {
-    // return dates;
-    // }
-
-    // public void setDates(Set<Date> dates) {
-    // this.dates = dates;
-    // }
-
     public Set<DateItem> getDateItems() {
         return dateItems;
     }
 
     public void setDateItems(Set<DateItem> dateItems) {
         this.dateItems = dateItems;
+    }
+
+    public String getImageObjectName() {
+        return imageObjectName;
+    }
+
+    public void setImageObjectName(String imageObjectName) {
+        this.imageObjectName = imageObjectName;
     }
 }

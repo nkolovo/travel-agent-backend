@@ -7,19 +7,21 @@ public class ItemDto {
     private String category;
     private String name;
     private String description;
+    private String imageObjectName;
 
     public ItemDto() {
     }
 
     public ItemDto(Long id, String country,
             String location, String category,
-            String name, String description) {
+            String name, String description, String imageObjectName) {
         this.id = id;
         this.country = country;
         this.location = location;
         this.category = category;
         this.name = name;
         this.description = description;
+        this.imageObjectName = imageObjectName;
     }
 
     public Long getId() {
@@ -68,5 +70,13 @@ public class ItemDto {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImageObjectName() {
+        return imageObjectName;
+    }
+
+    public void setImageObjectName(String imageObjectName) {
+        this.imageObjectName = imageObjectName;
     }
 }

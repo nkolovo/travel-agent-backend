@@ -23,9 +23,8 @@ public class ItineraryDto {
     private int tripPrice;
     private String status;
     private boolean docsSent;
-    private byte[] image;
-    private String imageType;
     private List<DateDto> dates;
+    private String imageObjectName;
 
     public ItineraryDto() {
     }
@@ -180,20 +179,12 @@ public class ItineraryDto {
         this.docsSent = docsSent;
     }
 
-    public byte[] getImage() {
-        return image;
+    public String getImageObjectName() {
+        return imageObjectName;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
-    }
-
-    public String getImageType() {
-        return imageType;
-    }
-
-    public void setImageType(String imageType) {
-        this.imageType = imageType;
+    public void setImageObjectName(String imageObjectName) {
+        this.imageObjectName = imageObjectName;
     }
 
     public String getClientName() {

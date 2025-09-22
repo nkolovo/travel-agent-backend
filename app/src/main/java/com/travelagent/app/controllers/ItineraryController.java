@@ -9,10 +9,11 @@ import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItineraryDto;
 
 import com.travelagent.app.services.ClientService;
+import com.travelagent.app.services.GcsImageService;
 import com.travelagent.app.services.ItineraryService;
 import com.travelagent.app.services.UserService;
 
-import org.springframework.http.HttpHeaders;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +33,9 @@ public class ItineraryController {
     private final ItineraryService itineraryService;
     private final UserService userService;
     private final ClientService clientService;
+
+    @Autowired
+    private GcsImageService gcsImageService;
 
     public ItineraryController(ItineraryService itineraryService, UserService userService,
             ClientService clientService) {
@@ -103,7 +106,6 @@ public class ItineraryController {
         try {
             String title = (String) updates.get("title");
             int tripCost = (int) updates.get("tripCost");
-            String coverImage = (String) updates.get("coverImage");
 
             Long itineraryId = Long.valueOf((int) updates.get("itineraryId"));
             ItineraryDto itineraryDto = itineraryService.getItineraryById(itineraryId);
@@ -111,9 +113,6 @@ public class ItineraryController {
 
             itinerary.setName(title);
             itinerary.setTripPrice(tripCost);
-            System.out.println("Image string: " + coverImage);
-            itinerary.setImage(Base64.getDecoder().decode(coverImage)); // If storing images as bytes
-            System.out.println("Image bytes: " + itinerary.getImage());
             itinerary.setEditedDate(LocalDateTime.now());
             itineraryService.saveItinerary(itinerary);
             return ResponseEntity.ok("Itinerary updated successfully.");
@@ -147,7 +146,6 @@ public class ItineraryController {
         return "Itinerary name updated.";
     }
 
-    // Upload Image (Accepts Any Image Format)
     @PostMapping("/{id}/upload-image")
     public ResponseEntity<String> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
@@ -156,26 +154,33 @@ public class ItineraryController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid file type! Only images allowed.");
             }
 
+            // Generate a unique object name, e.g., "itinerary-123.jpg"
+            String objectName = "itinerary-" + id + "-" + System.currentTimeMillis() + "-" + file.getOriginalFilename();
+
+            // Upload to GCS
+            gcsImageService.uploadImage(file, objectName);
+
+            // Save the object name in the itinerary
             ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
             Itinerary itinerary = mapToItinerary(itineraryDto);
-            itinerary.setImage(file.getBytes());
-            itinerary.setImageType(file.getContentType()); // Save MIME type
+            itinerary.setImageObjectName(objectName);
             itineraryService.saveItinerary(itinerary);
+
             return ResponseEntity.ok("Image uploaded successfully!");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading image");
         }
     }
 
-    // Retrieve Image (Returns Correct Format)
-    @GetMapping("/{id}/image")
-    public ResponseEntity<byte[]> getImage(@PathVariable Long id) {
+    @GetMapping("/{id}/image-url")
+    public ResponseEntity<String> getImageUrl(@PathVariable Long id) {
         ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
         Itinerary itinerary = mapToItinerary(itineraryDto);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, itinerary.getImageType()) // Dynamically set MIME type
-                .body(itinerary.getImage());
-
+        if (itinerary.getImageObjectName() == null) {
+            return ResponseEntity.notFound().build();
+        }
+        String url = gcsImageService.getSignedUrl(itinerary.getImageObjectName()).toString();
+        return ResponseEntity.ok(url);
     }
 
     @PostMapping("/add/date/{itineraryId}")

@@ -183,6 +183,6 @@ public class DateService {
 
     private ItemDto convertToDto(Item item) {
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
-                item.getCategory(), item.getName(), item.getDescription());
+                item.getCategory(), item.getName(), item.getDescription(), item.getImageObjectName());
     }
 }
