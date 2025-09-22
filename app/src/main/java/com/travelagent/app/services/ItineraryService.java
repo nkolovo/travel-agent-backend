@@ -82,10 +82,7 @@ public class ItineraryService {
                 .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
         itinerary.setEditedDate(LocalDateTime.now());
         Date dateToSave = mapToDate(date);
-        System.out.println(itinerary.getCreatedDate());
         dateToSave.setItinerary(itinerary);
-        System.out.println(itinerary.getCreatedDate());
-        System.out.println(dateToSave.getItinerary().getCreatedDate());
         return dateRepository.save(dateToSave);
     }
 
