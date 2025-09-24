@@ -1,12 +1,13 @@
 package com.travelagent.app.controllers;
 
 import com.travelagent.app.dto.DateItemDto;
-import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.services.DateService;
+import com.travelagent.app.services.GcsImageService;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,8 +36,8 @@ public class DateController {
     }
 
     @PostMapping("saveDateItem/{dateId}/item/{itemId}")
-    public DateItem saveDateItemToDate(@PathVariable Long dateId, @PathVariable Long itemId,
+    public void saveDateItemToDate(@PathVariable Long dateId, @PathVariable Long itemId,
             @RequestBody DateItemDto dateItem) {
-        return dateService.saveDateItemToDate(dateId, itemId, dateItem);
+        dateService.saveDateItemToDate(dateId, itemId, dateItem);
     }
 }

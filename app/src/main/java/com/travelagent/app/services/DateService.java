@@ -12,6 +12,7 @@ import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItemRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -29,6 +30,9 @@ public class DateService {
     private final DateRepository dateRepository;
     private final ItemRepository itemRepository;
     private final DateItemRepository dateItemRepository;
+
+    @Autowired
+    private GcsImageService gcsImageService;
 
     public DateService(DateRepository dateRepository, ItemRepository itemRepository,
             ItineraryRepository itineraryRepository, DateItemRepository dateItemRepository) {
@@ -60,6 +64,7 @@ public class DateService {
                 dateItemMap.put(ci.getItem().getId(), ci);
             }
 
+            Map<String, String> signedUrlCache = new HashMap<>();
             List<DateItemDto> result = new ArrayList<>();
             for (Item item : itemsSet) {
                 String name = dateItemMap.containsKey(item.getId())
@@ -68,6 +73,9 @@ public class DateService {
                 String description = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getDescription()
                         : item.getDescription();
+                String imageName = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getImageName()
+                        : item.getImageName();
                 Short priority = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getPriority()
                         : dateOpt.get().getDateItems()
@@ -76,6 +84,9 @@ public class DateService {
                                 .findFirst()
                                 .map(DateItem::getPriority)
                                 .orElse(null);
+                String signedUrl = null;
+                if (imageName != null)
+                    signedUrl = signedUrlCache.computeIfAbsent(imageName, gcsImageService::getSignedUrl);
                 result.add(new DateItemDto(
                         item.getId(),
                         convertToDto(dateOpt.get()),
@@ -85,6 +96,8 @@ public class DateService {
                         item.getCategory(),
                         name,
                         description,
+                        imageName,
+                        signedUrl,
                         priority));
             }
             // Sort the result by Priority
@@ -113,6 +126,7 @@ public class DateService {
             dateItem.setCategory(item.getCategory());
             dateItem.setName(item.getName());
             dateItem.setDescription(item.getDescription());
+            dateItem.setImageName(item.getImageName());
             dateItem.setPriority(priority);
             date.getDateItems().add(dateItem);
 
@@ -124,7 +138,7 @@ public class DateService {
         throw new RuntimeException("Date or Item not found!");
     }
 
-    public DateItem saveDateItemToDate(Long dateId, Long itemId, DateItemDto dateItemDto) {
+    public void saveDateItemToDate(Long dateId, Long itemId, DateItemDto dateItemDto) {
         Date date = dateRepository.findById(dateId)
                 .orElseThrow(() -> new RuntimeException("Could not find date with ID " + dateId));
         Item item = itemRepository.findById(itemId)
@@ -134,14 +148,9 @@ public class DateService {
         Optional<DateItem> originalDateItem = dateItemRepository.findByDateIdAndItemId(dateId, itemId);
         final Short originalPriority = originalDateItem.isPresent() ? originalDateItem.get().getPriority() : null;
         dateItem.setId(new DateItemId(dateId, itemId));
+        dateItem = convertFromDto(dateItemDto);
         dateItem.setDate(date);
         dateItem.setItem(item);
-        dateItem.setCountry(dateItemDto.getCountry());
-        dateItem.setLocation(dateItemDto.getLocation());
-        dateItem.setCategory(dateItemDto.getCategory());
-        dateItem.setName(dateItemDto.getName());
-        dateItem.setDescription(dateItemDto.getDescription());
-        dateItem.setPriority(dateItemDto.getPriority());
 
         if (originalPriority != null) {
             List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(dateId).stream()
@@ -156,7 +165,7 @@ public class DateService {
             }
             dateItemRepository.saveAll(prioritiesToUpdate);
         }
-        return dateItemRepository.save(dateItem);
+        dateItemRepository.save(dateItem);
     }
 
     public void removeItemFromDate(Long dateId, Long itemId) {
@@ -177,12 +186,25 @@ public class DateService {
         throw new RuntimeException("Date or Item not found!");
     }
 
+    private DateItem convertFromDto(DateItemDto dateItemDto) {
+        DateItem dateItem = new DateItem();
+        dateItem.setId(new DateItemId(dateItemDto.getDate().getId(), dateItemDto.getItem().getId()));
+        dateItem.setCountry(dateItemDto.getCountry());
+        dateItem.setLocation(dateItemDto.getLocation());
+        dateItem.setCategory(dateItemDto.getCategory());
+        dateItem.setName(dateItemDto.getName());
+        dateItem.setDescription(dateItemDto.getDescription());
+        dateItem.setImageName(dateItemDto.getImageName());
+        dateItem.setPriority(dateItemDto.getPriority());
+        return dateItem;
+    }
+
     private DateDto convertToDto(Date date) {
         return new DateDto(date.getId(), date.getName(), date.getLocation(), date.getDate());
     }
 
     private ItemDto convertToDto(Item item) {
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
-                item.getCategory(), item.getName(), item.getDescription(), item.getImageObjectName());
+                item.getCategory(), item.getName(), item.getDescription(), item.getImageName());
     }
 }

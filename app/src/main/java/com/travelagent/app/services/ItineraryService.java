@@ -65,6 +65,11 @@ public class ItineraryService {
         }
     }
 
+    public Itinerary getEntityById(Long id) {
+        return itineraryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Itinerary not found"));
+    }
+
     public String getLatestReservationNumber() {
         return itineraryRepository.findNewestReservationNumber();
     }
@@ -127,4 +132,5 @@ public class ItineraryService {
         dateDto.setDate(date.getDate());
         return dateDto;
     }
+
 }

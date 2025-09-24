@@ -9,6 +9,8 @@ public class DateItemDto {
     private String category;
     private String name;
     private String description;
+    private String imageName;
+    private String imageUrl;
     private Short priority;
 
     public DateItemDto() {
@@ -18,7 +20,7 @@ public class DateItemDto {
             ItemDto item, String country,
             String location, String category,
             String name, String description,
-            Short priority) {
+            String imageName, String imageUrl, Short priority) {
         this.id = id;
         this.date = date;
         this.item = item;
@@ -27,6 +29,8 @@ public class DateItemDto {
         this.category = category;
         this.name = name;
         this.description = description;
+        this.imageName = imageName;
+        this.imageUrl = imageUrl;
         this.priority = priority;
     }
 
@@ -75,6 +79,10 @@ public class DateItemDto {
         return description;
     }
 
+    public String getImageName() {
+        return imageName;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -93,6 +101,18 @@ public class DateItemDto {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public Short getPriority() {

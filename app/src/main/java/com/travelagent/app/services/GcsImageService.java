@@ -13,16 +13,21 @@ public class GcsImageService {
     private final String bucketName = "personally-travel-app-images";
     private final Storage storage = StorageOptions.getDefaultInstance().getService();
 
-    public String uploadImage(MultipartFile file, String objectName) throws IOException {
-        BlobId blobId = BlobId.of(bucketName, objectName);
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
-        storage.create(blobInfo, file.getBytes());
-        return objectName;
+    public boolean doesImageExist(String fileName) {
+        Blob blob = storage.get(bucketName, fileName);
+        return blob != null && blob.exists();
     }
 
-    public URL getSignedUrl(String objectName) {
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, objectName).build();
-        // URL valid for 15 minutes
-        return storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
+    public String uploadImage(MultipartFile file, String fileName) throws IOException {
+        BlobId blobId = BlobId.of(bucketName, fileName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
+        storage.create(blobInfo, file.getBytes());
+        return fileName;
+    }
+
+    public String getSignedUrl(String fileName) {
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
+        URL url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
+        return url.toString();
     }
 }

@@ -24,7 +24,8 @@ public class ItineraryDto {
     private String status;
     private boolean docsSent;
     private List<DateDto> dates;
-    private String imageObjectName;
+    private String imageName;
+    private String coverImageUrl;
 
     public ItineraryDto() {
     }
@@ -48,9 +49,8 @@ public class ItineraryDto {
     }
 
     public ItineraryDto(Long id, String name, String agent, LocalDate createdDate, LocalDateTime editedDate,
-            LocalDate dateSold,
-            String reservationNumber, String leadName, int numTravelers, LocalDate arrivalDate,
-            LocalDate departureDate, int tripPrice, String status, boolean docsSent) {
+            LocalDate dateSold, String reservationNumber, String leadName, int numTravelers, LocalDate arrivalDate,
+            LocalDate departureDate, int tripPrice, String status, boolean docsSent, String imageName) {
         this.id = id;
         this.name = name;
         this.agent = agent;
@@ -65,6 +65,7 @@ public class ItineraryDto {
         this.tripPrice = tripPrice;
         this.status = status;
         this.docsSent = docsSent;
+        this.imageName = imageName;
     }
 
     public Long getId() {
@@ -179,12 +180,20 @@ public class ItineraryDto {
         this.docsSent = docsSent;
     }
 
-    public String getImageObjectName() {
-        return imageObjectName;
+    public String getImageName() {
+        return imageName;
     }
 
-    public void setImageObjectName(String imageObjectName) {
-        this.imageObjectName = imageObjectName;
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
+
+    public String getCoverImageUrl() {
+        return coverImageUrl;
+    }
+
+    public void setCoverImageUrl(String coverImageUrl) {
+        this.coverImageUrl = coverImageUrl;
     }
 
     public String getClientName() {

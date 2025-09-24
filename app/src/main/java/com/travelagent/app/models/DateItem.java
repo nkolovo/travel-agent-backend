@@ -42,6 +42,9 @@ public class DateItem {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @JsonProperty("image_name")
+    private String imageName;
+
     // Constructors
     public DateItem() {
     }
@@ -120,5 +123,13 @@ public class DateItem {
 
     public void setPriority(Short priority) {
         this.priority = priority;
+    }
+
+    public String getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
     }
 }

@@ -48,18 +48,22 @@ public class ItineraryController {
     public List<ItineraryDto> getAllItineraries(@RequestParam(required = false) String reservationNumber,
             @RequestParam(required = false) String leadName) {
         if (reservationNumber != null || leadName != null) {
-            // Call the service to filter itineraries based on the reservationNumber and/or
-            // leadName
+            // Filter
             return itineraryService.getItinerariesByFilters(reservationNumber, leadName);
         } else {
-            // Return all itineraries if no filters are provided
+            // Return db order
             return itineraryService.getAllItineraries();
         }
     }
 
     @GetMapping("/{id}")
     public ItineraryDto getItineraryById(@PathVariable Long id) {
-        return itineraryService.getItineraryById(id);
+        ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
+        if (itineraryDto.getImageName() != null) {
+            String signedUrl = gcsImageService.getSignedUrl(itineraryDto.getImageName());
+            itineraryDto.setCoverImageUrl(signedUrl);
+        }
+        return itineraryDto;
     }
 
     @PostMapping("/create")
@@ -154,33 +158,22 @@ public class ItineraryController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid file type! Only images allowed.");
             }
 
-            // Generate a unique object name, e.g., "itinerary-123.jpg"
-            String objectName = "itinerary-" + id + "-" + System.currentTimeMillis() + "-" + file.getOriginalFilename();
+            String fileName = file.getOriginalFilename();
 
-            // Upload to GCS
-            gcsImageService.uploadImage(file, objectName);
+            if (!gcsImageService.doesImageExist(fileName)) {
+                // Upload to GCS
+                gcsImageService.uploadImage(file, fileName);
+            }
 
-            // Save the object name in the itinerary
-            ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
-            Itinerary itinerary = mapToItinerary(itineraryDto);
-            itinerary.setImageObjectName(objectName);
+            // Save the file name in the itinerary
+            Itinerary itinerary = itineraryService.getEntityById(id);
+            itinerary.setImageName(fileName);
             itineraryService.saveItinerary(itinerary);
 
             return ResponseEntity.ok("Image uploaded successfully!");
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading image");
         }
-    }
-
-    @GetMapping("/{id}/image-url")
-    public ResponseEntity<String> getImageUrl(@PathVariable Long id) {
-        ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
-        Itinerary itinerary = mapToItinerary(itineraryDto);
-        if (itinerary.getImageObjectName() == null) {
-            return ResponseEntity.notFound().build();
-        }
-        String url = gcsImageService.getSignedUrl(itinerary.getImageObjectName()).toString();
-        return ResponseEntity.ok(url);
     }
 
     @PostMapping("/add/date/{itineraryId}")
@@ -214,6 +207,7 @@ public class ItineraryController {
         itinerary.setTripPrice(itineraryDto.getTripPrice());
         itinerary.setStatus(itineraryDto.getStatus());
         itinerary.setDocsSent(itineraryDto.isDocsSent());
+        itinerary.setImageName(itineraryDto.getImageName());
         return itinerary;
     }
 }

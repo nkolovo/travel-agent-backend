@@ -21,23 +21,15 @@ public class Item {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
-
-    // @ManyToMany(mappedBy = "items")
-    // @JsonBackReference("date-item")
-    // private Set<Date> dates = new HashSet<>();
+    private String imageName;
 
     @OneToMany(mappedBy = "item")
     @JsonBackReference
     private Set<DateItem> dateItems = new HashSet<>();
 
-    @Column(name = "image_object_name")
-    private String imageObjectName;
-
-    // Constructors
     public Item() {
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
@@ -94,11 +86,11 @@ public class Item {
         this.dateItems = dateItems;
     }
 
-    public String getImageObjectName() {
-        return imageObjectName;
+    public String getImageName() {
+        return imageName;
     }
 
-    public void setImageObjectName(String imageObjectName) {
-        this.imageObjectName = imageObjectName;
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
     }
 }

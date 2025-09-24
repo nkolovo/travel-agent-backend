@@ -57,6 +57,8 @@ public class Itinerary {
     private int tripPrice;
     private String status;
     private boolean docsSent;
+    @Column(name = "image_name")
+    private String imageName;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -71,11 +73,6 @@ public class Itinerary {
     @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("itinerary-date")
     private List<Date> dates;
-
-    // ...existing code...
-
-    @Column(name = "image_object_name")
-    private String imageObjectName;
 
     public Itinerary() {
     }

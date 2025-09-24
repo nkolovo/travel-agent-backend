@@ -1,9 +1,7 @@
 package com.travelagent.app.controllers;
 
 import com.travelagent.app.dto.ItemDto;
-import com.travelagent.app.dto.ItineraryDto;
 import com.travelagent.app.models.Item;
-import com.travelagent.app.models.Itinerary;
 
 import com.travelagent.app.services.ItemService;
 import com.travelagent.app.services.GcsImageService;
@@ -54,16 +52,17 @@ public class ItemController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid file type! Only images allowed.");
             }
 
-            // Generate a unique object name, e.g., "item-123.jpg"
-            String objectName = "item-" + id + "-" + System.currentTimeMillis() + "-" + file.getOriginalFilename();
+            String fileName = file.getOriginalFilename();
 
-            // Upload to GCS
-            gcsImageService.uploadImage(file, objectName);
+            if (!gcsImageService.doesImageExist(fileName)) {
+                // Upload to GCS
+                gcsImageService.uploadImage(file, fileName);
+            }
 
-            // Save the object name in the item
-            ItemDto itemDto = itemService.getItemById(id);
-            itemDto.setImageObjectName(objectName);
-            itemService.saveItem(itemDto);
+            // Save the file name in the itinerary
+            ItemDto item = itemService.getItemById(id);
+            item.setImageName(fileName);
+            itemService.saveItem(item);
 
             return ResponseEntity.ok("Image uploaded successfully!");
         } catch (IOException e) {
