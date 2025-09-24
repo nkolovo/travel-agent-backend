@@ -73,11 +73,8 @@ public class AuthController {
             throw new RuntimeException("Invalid password");
         }
 
-        System.out.println(dbUser.getRole().getName());
         String roleName = dbUser.getRole().getName();
         String token = jwtUtil.generateToken(dbUser.getUsername(), roleName);
-        System.out.println(token);
-        System.out.println(roleName);
         return Map.of(
                 "token", token,
                 "role", roleName,

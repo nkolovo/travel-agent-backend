@@ -2,17 +2,21 @@ package com.travelagent.app.services;
 
 import com.travelagent.app.dto.ItemDto;
 import com.travelagent.app.models.Item;
-
 import com.travelagent.app.repositories.ItemRepository;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ItemService {
 
     private final ItemRepository itemRepository;
+
+    @Autowired
+    private GcsImageService gcsImageService;
 
     public ItemService(ItemRepository itemRepository) {
         this.itemRepository = itemRepository;
@@ -31,7 +35,7 @@ public class ItemService {
         return itemRepository.save(itemToSave).getId();
     }
 
-    private Item mapToItem(ItemDto item) {
+    public Item mapToItem(ItemDto item) {
         Item itemToSave = new Item();
         itemToSave.setId(item.getId());
         itemToSave.setCountry(item.getCountry());
@@ -39,10 +43,30 @@ public class ItemService {
         itemToSave.setCategory(item.getCategory());
         itemToSave.setName(item.getName());
         itemToSave.setDescription(item.getDescription());
+        itemToSave.setImageName(item.getImageName());
         return itemToSave;
     }
 
     public void removeItem(Long id) {
         itemRepository.deleteById(id);
+    }
+
+    public ItemDto getItemById(Long id) {
+        Optional<ItemDto> itemDtoOpt = itemRepository.findByIdDto(id);
+        if (itemDtoOpt.isPresent()) {
+            ItemDto itemDto = itemDtoOpt.get();
+            if (itemDto.getImageName() != null) {
+                String signedUrl = gcsImageService.getSignedUrl(itemDto.getImageName());
+                itemDto.setImageUrl(signedUrl);
+            }
+            return itemDto;
+        } else {
+            throw new RuntimeException("Could not find itinerary with ID " + id);
+        }
+    }
+
+    public Item getEntityById(Long id) {
+        return itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Itinerary not found"));
     }
 }

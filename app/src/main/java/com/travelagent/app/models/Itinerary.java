@@ -57,11 +57,8 @@ public class Itinerary {
     private int tripPrice;
     private String status;
     private boolean docsSent;
-
-    @Column(name = "image", columnDefinition = "BYTEA", nullable = true)
-    private byte[] image;
-
-    private String imageType;
+    @Column(name = "image_name")
+    private String imageName;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -78,22 +75,5 @@ public class Itinerary {
     private List<Date> dates;
 
     public Itinerary() {
-    }
-
-    // Getters and Setters
-    public String getImageType() {
-        return imageType;
-    }
-
-    public void setImageType(String imageType) {
-        this.imageType = imageType;
-    }
-
-    public byte[] getImage() {
-        return image;
-    }
-
-    public void setImage(byte[] image) {
-        this.image = image;
     }
 }
