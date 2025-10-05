@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title th:text="${itinerary.name} + ' - Itinerary'">Itinerary</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .main-image {
+        width: 400px;
+        max-width: 100%;
+        margin-bottom: 20px;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+      .date-header {
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-top: 20px;
+      }
+      .dateitem {
+        margin-left: 20px;
+        margin-bottom: 20px;
+      }
+      .dateitem-image {
+        width: 200px;
+        max-width: 100%;
+        margin-bottom: 10px;
+      }
+      .info-table {
+        margin: 0 auto 20px auto;
+        border-collapse: collapse;
+      }
+      .info-table td {
+        padding: 6px 12px;
+      }
+      .info-table th {
+        text-align: left;
+        padding: 6px 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1 th:text="${itinerary.name}">Itinerary Name</h1>
+      <img
+        th:if="${itinerary.coverImageUrl != null}"
+        th:src="${itinerary.coverImageUrl}"
+        class="main-image"
+        alt="Itinerary Image"
+      />
+      <table class="info-table">
+        <tr>
+          <th>Agent:</th>
+          <td th:text="${itinerary.agent}">Agent Name</td>
+        </tr>
+        <tr>
+          <th>Reservation #:</th>
+          <td th:text="${itinerary.reservationNumber}">Reservation Number</td>
+        </tr>
+        <tr>
+          <th>Travelers:</th>
+          <td th:text="${itinerary.numTravelers}">Number of Travelers</td>
+        </tr>
+        <tr>
+          <th>Arrival:</th>
+          <td th:text="${itinerary.arrivalDate}">Arrival Date</td>
+        </tr>
+        <tr>
+          <th>Departure:</th>
+          <td th:text="${itinerary.departureDate}">Departure Date</td>
+        </tr>
+        <tr>
+          <th>Trip Price:</th>
+          <td th:text="${itinerary.tripPrice}">Trip Price</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section" th:each="date : ${itinerary.dates}">
+      <div class="date-header">
+        <span th:text="${date.name}">Date Name</span>
+        <span th:text="' (' + ${date.date} + ')'">Date</span>
+        <span
+          th:if="${date.location != null}"
+          th:text="' - ' + ${date.location}"
+          >Location</span
+        >
+      </div>
+      <div
+        th:each="dateItem : ${dateItems}"
+        th:if="${dateItem.date.id == date.id}"
+        class="dateitem"
+      >
+        <h3 th:text="${dateItem.name}">DateItem Title</h3>
+        <img
+          th:if="${dateItem.imageUrl != null}"
+          th:src="${dateItem.imageUrl}"
+          class="dateitem-image"
+          alt="DateItem Image"
+        />
+        <div th:text="${dateItem.description}">DateItem Description</div>
+      </div>
+    </div>
+  </body>
+</html>

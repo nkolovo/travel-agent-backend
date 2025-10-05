@@ -39,6 +39,10 @@ public class DateItemDto {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public DateDto getDate() {
         return date;
     }
@@ -81,10 +85,6 @@ public class DateItemDto {
 
     public String getImageName() {
         return imageName;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public void setLocation(String location) {

@@ -3,11 +3,9 @@ package com.travelagent.app.controllers;
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.services.DateService;
-import com.travelagent.app.services.GcsImageService;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
