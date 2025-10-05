@@ -2,26 +2,33 @@ package com.travelagent.app.controllers;
 
 import com.travelagent.app.models.Client;
 import com.travelagent.app.models.Date;
+import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.User;
-
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.travelagent.app.dto.DateDto;
+import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.ItineraryDto;
 
 import com.travelagent.app.services.ClientService;
 import com.travelagent.app.services.GcsImageService;
 import com.travelagent.app.services.ItineraryService;
 import com.travelagent.app.services.UserService;
+import com.travelagent.app.services.DateItemService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.thymeleaf.context.Context;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,15 +40,19 @@ public class ItineraryController {
     private final ItineraryService itineraryService;
     private final UserService userService;
     private final ClientService clientService;
+    private final DateItemService dateItemService;
 
     @Autowired
     private GcsImageService gcsImageService;
+    @Autowired
+    private SpringTemplateEngine templateEngine;
 
     public ItineraryController(ItineraryService itineraryService, UserService userService,
-            ClientService clientService) {
+            ClientService clientService, DateItemService dateItemService) {
         this.itineraryService = itineraryService;
         this.userService = userService;
         this.clientService = clientService;
+        this.dateItemService = dateItemService;
     }
 
     @GetMapping
@@ -191,6 +202,64 @@ public class ItineraryController {
         return itineraryService.removeDateFromItinerary(dateId, itineraryId);
     }
 
+    @GetMapping("generate-pdf/{id}")
+    public ResponseEntity<byte[]> getPdf(@PathVariable Long id) {
+        ItineraryDto itinerary = itineraryService.getItineraryById(id);
+        List<DateDto> dates = new ArrayList<>(itinerary.getDates());
+        dates.sort(Comparator.comparing(DateDto::getDate));
+        itinerary.setDates(dates);
+        System.out.println("Got Itinerary and its Dates");
+
+        // Collect all DateItemDtos for all dates in the itinerary
+        List<DateItemDto> allDateItemDtos = new ArrayList<>();
+        for (DateDto date : dates) {
+            List<DateItem> dateItems = dateItemService.getDateItemsByDate(date.getId());
+            System.out.println("Got dateItems");
+            for (DateItem dateItem : dateItems) {
+                System.out.println("Mapping dateItem to dto");
+                DateItemDto dto = mapToDateItemDto(dateItem);
+                System.out.println("Mapped successfully");
+                if (dto.getImageName() != null) {
+                    System.out.println("Getting signed URL for image: " + dto.getImageName());
+                    String signedUrl = gcsImageService.getSignedUrl(dto.getImageName());
+                    dto.setImageUrl(signedUrl);
+                    System.out.println("Got signed URL");
+                }
+                allDateItemDtos.add(dto);
+            }
+        }
+
+        // Set signed URL for itinerary image
+        if (itinerary.getImageName() != null) {
+            String signedUrl = gcsImageService.getSignedUrl(itinerary.getImageName());
+            itinerary.setCoverImageUrl(signedUrl);
+        }
+
+        // Render Thymeleaf template to HTML
+        Context context = new Context();
+        context.setVariable("itinerary", itinerary);
+        context.setVariable("dateItems", allDateItemDtos);
+        String html = templateEngine.process("itinerary-pdf", context);
+
+        // Convert HTML to PDF
+        ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+        builder.withHtmlContent(html, null);
+        builder.toStream(pdfStream);
+        try {
+            builder.run();
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        byte[] pdfBytes = pdfStream.toByteArray();
+
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/pdf")
+                .header("Content-Disposition", "attachment; filename=itinerary.pdf")
+                .body(pdfBytes);
+    }
+
     private Itinerary mapToItinerary(ItineraryDto itineraryDto) {
         Itinerary itinerary = new Itinerary();
         itinerary.setId(itineraryDto.getId());
@@ -209,5 +278,22 @@ public class ItineraryController {
         itinerary.setDocsSent(itineraryDto.isDocsSent());
         itinerary.setImageName(itineraryDto.getImageName());
         return itinerary;
+    }
+
+    private DateItemDto mapToDateItemDto(DateItem dateItem) {
+        DateItemDto dto = new DateItemDto();
+        dto.setId(dateItem.getId().getItemId());
+        dto.setName(dateItem.getName());
+        dto.setDescription(dateItem.getDescription());
+        dto.setDate(itineraryService.mapToDateDto(dateItem.getDate()));
+        dto.setLocation(dateItem.getLocation());
+        dto.setImageName(dateItem.getImageName());
+        if (dateItem.getDate() != null) {
+            DateDto dateDto = new DateDto();
+            dateDto.setId(dateItem.getDate().getId());
+            dateDto.setDate(dateItem.getDate().getDate());
+            dto.setDate(dateDto);
+        }
+        return dto;
     }
 }

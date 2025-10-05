@@ -124,7 +124,7 @@ public class ItineraryService {
         return date;
     }
 
-    private DateDto mapToDateDto(Date date) {
+    public DateDto mapToDateDto(Date date) {
         DateDto dateDto = new DateDto();
         dateDto.setId(date.getId());
         dateDto.setName(date.getName());
