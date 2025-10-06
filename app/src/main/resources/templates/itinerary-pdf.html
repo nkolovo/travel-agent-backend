@@ -2,110 +2,230 @@
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
-    <title th:text="${itinerary.name} + ' - Itinerary'">Itinerary</title>
+    <title th:utext="${itinerary.name} + ' - Itinerary'">Itinerary</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
+      :root {
+        --text: #1a1a1a;
+        --muted: #6b7280; /* gray-500 */
+        --border: #e5e7eb; /* gray-200 */
+        --accent: #111827; /* gray-900 */
+        --chip-bg: #f9fafb; /* gray-50 */
       }
+
+      html,
+      body {
+        height: 100%;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        margin: 0 auto;
+        padding: 40px 28px;
+        max-width: 960px; /* keeps PDF output tidy */
+        line-height: 1.5;
+      }
+
+      /* ---------- Header ---------- */
       .header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 26px;
+      }
+      .header h1 {
+        margin: 0 0 14px 0;
+        font-size: 32px;
+        line-height: 1.2;
+        letter-spacing: -0.01em;
       }
       .main-image {
-        width: 400px;
+        width: 420px;
         max-width: 100%;
-        margin-bottom: 20px;
+        height: auto;
+        border-radius: 12px;
+        display: inline-block;
+        margin: 0 auto 16px auto;
       }
+
+      /* ---------- Info Row (replaces table) ---------- */
+      .info-row {
+        /* Fallback for OpenHTMLtoPDF (no flex support) */
+        text-align: center;
+        margin: 8px auto 10px auto;
+        padding: 12px 14px;
+        max-width: 880px;
+      }
+      /* Browsers will use flex, PDF will ignore this unknown value and keep fallback above */
+      .info-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .info-item {
+        /* Fallback inline layout for PDF */
+        display: inline-block;
+        vertical-align: middle;
+        margin: 2px 2px;
+        padding: 10px 10px;
+        border-radius: 9999px; /* pill */
+        background: #70a7df;
+      }
+      /* Browsers will prefer this; PDF engine ignores 'inline-flex' */
+      .info-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 2px;
+      }
+      .info-item .label {
+        font-weight: 600;
+        color: #6b7280;
+        white-space: nowrap;
+      }
+      .info-item .value {
+        color: #111827;
+        white-space: nowrap;
+      }
+
+      /* When long values exist, allow wrap on small screens */
+      @media (max-width: 560px) {
+        .info-item {
+          white-space: normal;
+        }
+        .info-item .value {
+          white-space: normal;
+        }
+      }
+
+      /* ---------- Sections ---------- */
       .section {
-        margin-bottom: 40px;
+        margin: 26px 0 34px 0;
       }
+
       .date-header {
-        font-size: 1.2em;
-        font-weight: bold;
-        margin-top: 20px;
+        font-size: 18px;
+        font-weight: 700;
+        margin: 18px 0 10px 0;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
       }
+
       .dateitem {
-        margin-left: 20px;
-        margin-bottom: 20px;
+        margin: 14px 0 18px 0;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+      }
+      .dateitem h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
       }
       .dateitem-image {
-        width: 200px;
+        width: 240px;
         max-width: 100%;
-        margin-bottom: 10px;
+        height: auto;
+        margin: 6px 0 10px 0;
+        border-radius: 10px;
       }
-      .info-table {
-        margin: 0 auto 20px auto;
-        border-collapse: collapse;
+
+      .dateitem .description {
+        margin-top: 6px;
       }
-      .info-table td {
-        padding: 6px 12px;
-      }
-      .info-table th {
-        text-align: left;
-        padding: 6px 12px;
+
+      /* ---------- Print tweaks ---------- */
+      @media print {
+        body {
+          padding: 0 10mm;
+        }
+        .info-row {
+          border-color: #d1d5db;
+        }
+        .dateitem,
+        .date-header {
+          break-inside: avoid;
+        }
+        a {
+          color: #000;
+          text-decoration: none;
+        }
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <h1 th:text="${itinerary.name}">Itinerary Name</h1>
+      <h1 th:utext="${itinerary.name}">Itinerary Name</h1>
+
       <img
         th:if="${itinerary.coverImageUrl != null}"
         th:src="${itinerary.coverImageUrl}"
         class="main-image"
         alt="Itinerary Image"
       />
-      <table class="info-table">
-        <tr>
-          <th>Agent:</th>
-          <td th:text="${itinerary.agent}">Agent Name</td>
-        </tr>
-        <tr>
-          <th>Reservation #:</th>
-          <td th:text="${itinerary.reservationNumber}">Reservation Number</td>
-        </tr>
-        <tr>
-          <th>Travelers:</th>
-          <td th:text="${itinerary.numTravelers}">Number of Travelers</td>
-        </tr>
-        <tr>
-          <th>Arrival:</th>
-          <td th:text="${itinerary.arrivalDate}">Arrival Date</td>
-        </tr>
-        <tr>
-          <th>Departure:</th>
-          <td th:text="${itinerary.departureDate}">Departure Date</td>
-        </tr>
-        <tr>
-          <th>Trip Price:</th>
-          <td th:text="${itinerary.tripPrice}">Trip Price</td>
-        </tr>
-      </table>
+
+      <!-- INFO ROW (chips) -->
+      <div class="info-row">
+        <div class="info-item" th:if="${itinerary.agent != null}">
+          <span class="label">Agent</span>
+          <span class="value" th:utext="${itinerary.agent}">Agent Name</span>
+        </div>
+        <div class="info-item" th:if="${itinerary.reservationNumber != null}">
+          <span class="label">Reservation #</span>
+          <span class="value" th:utext="${itinerary.reservationNumber}"
+            >ABC123</span
+          >
+        </div>
+        <div class="info-item" th:if="${itinerary.numTravelers != null}">
+          <span class="label">Travelers</span>
+          <span class="value" th:utext="${itinerary.numTravelers}">2</span>
+        </div>
+        <div class="info-item" th:if="${itinerary.arrivalDate != null}">
+          <span class="label">Arrival</span>
+          <span class="value" th:utext="${itinerary.arrivalDate}"
+            >2025-06-02</span
+          >
+        </div>
+        <div class="info-item" th:if="${itinerary.departureDate != null}">
+          <span class="label">Departure</span>
+          <span class="value" th:utext="${itinerary.departureDate}"
+            >2025-06-12</span
+          >
+        </div>
+        <div class="info-item" th:if="${itinerary.tripPrice != null}">
+          <span class="label">Trip Price</span>
+          <span class="value" th:utext="${itinerary.tripPrice}">€7,200</span>
+        </div>
+      </div>
     </div>
 
+    <!-- DATES & ITEMS -->
     <div class="section" th:each="date : ${itinerary.dates}">
       <div class="date-header">
-        <span th:text="${date.name}">Date Name</span>
-        <span th:text="' (' + ${date.date} + ')'">Date</span>
+        <span th:utext="${date.name}">Date Name</span>
+        <span th:utext="' (' + ${date.date} + ')'">Date</span>
         <span
           th:if="${date.location != null}"
-          th:text="' - ' + ${date.location}"
+          th:utext="' – ' + ${date.location}"
           >Location</span
         >
       </div>
+
       <div
         th:each="dateItem : ${dateItems}"
         th:if="${dateItem.date.id == date.id}"
         class="dateitem"
       >
-        <h3 th:text="${dateItem.name}">DateItem Title</h3>
+        <h3 th:utext="${dateItem.name}">DateItem Title</h3>
         <img
           th:if="${dateItem.imageUrl != null}"
           th:src="${dateItem.imageUrl}"
           class="dateitem-image"
           alt="DateItem Image"
         />
-        <div th:text="${dateItem.description}">DateItem Description</div>
+        <div class="description" th:utext="${dateItem.description}">
+          DateItem Description
+        </div>
       </div>
     </div>
   </body>

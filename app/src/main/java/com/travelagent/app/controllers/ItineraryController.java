@@ -228,6 +228,7 @@ public class ItineraryController {
                 allDateItemDtos.add(dto);
             }
         }
+        allDateItemDtos.sort(Comparator.comparing(DateItemDto::getPriority));
 
         // Set signed URL for itinerary image
         if (itinerary.getImageName() != null) {
@@ -240,7 +241,8 @@ public class ItineraryController {
         context.setVariable("itinerary", itinerary);
         context.setVariable("dateItems", allDateItemDtos);
         String html = templateEngine.process("itinerary-pdf", context);
-
+        html = html.replaceAll("&(?![a-zA-Z]{2,6};|#[0-9]{2,5};)", "&amp;");
+        
         // Convert HTML to PDF
         ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
         PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -294,6 +296,7 @@ public class ItineraryController {
             dateDto.setDate(dateItem.getDate().getDate());
             dto.setDate(dateDto);
         }
+        dto.setPriority(dateItem.getPriority());
         return dto;
     }
 }

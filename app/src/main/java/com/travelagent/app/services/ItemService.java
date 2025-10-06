@@ -43,7 +43,7 @@ public class ItemService {
         itemToSave.setCategory(item.getCategory());
         itemToSave.setName(item.getName());
         itemToSave.setDescription(item.getDescription());
-        itemToSave.setImageName(item.getImageName());
+        itemToSave.setImageName(item.getImageName().length() > 0 ? item.getImageName() : null);
         return itemToSave;
     }
 
