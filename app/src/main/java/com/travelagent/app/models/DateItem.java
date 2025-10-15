@@ -45,12 +45,12 @@ public class DateItem {
     @JsonProperty("image_name")
     private String imageName;
 
+    @Column(name = "priority")
+    private Short priority;
+
     // Constructors
     public DateItem() {
     }
-
-    @Column(name = "priority")
-    private Short priority; // or Integer/Long
 
     // getters and setters
     public DateItemId getId() {
@@ -117,19 +117,19 @@ public class DateItem {
         this.description = description;
     }
 
-    public Short getPriority() {
-        return priority;
-    }
-
-    public void setPriority(Short priority) {
-        this.priority = priority;
-    }
-
     public String getImageName() {
         return imageName;
     }
 
     public void setImageName(String imageName) {
         this.imageName = imageName;
+    }
+
+    public Short getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Short priority) {
+        this.priority = priority;
     }
 }
