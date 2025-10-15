@@ -6,6 +6,7 @@ import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.User;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.ItineraryDto;
@@ -26,8 +27,10 @@ import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -206,31 +209,26 @@ public class ItineraryController {
     }
 
     @GetMapping("generate-pdf/{id}")
-    public ResponseEntity<byte[]> getPdf(@PathVariable Long id) {
+    public ResponseEntity<byte[]> getPdf(@PathVariable Long id) throws IOException {
         ItineraryDto itinerary = itineraryService.getItineraryById(id);
         List<DateDto> dates = new ArrayList<>(itinerary.getDates());
         dates.sort(Comparator.comparing(DateDto::getDate));
         itinerary.setDates(dates);
-        System.out.println("Got Itinerary and its Dates");
 
         // Collect all DateItemDtos for all dates in the itinerary
         List<DateItemDto> allDateItemDtos = new ArrayList<>();
         for (DateDto date : dates) {
             List<DateItem> dateItems = dateItemService.getDateItemsByDate(date.getId());
-            System.out.println("Got dateItems");
             for (DateItem dateItem : dateItems) {
-                System.out.println("Mapping dateItem to dto");
                 DateItemDto dto = mapToDateItemDto(dateItem);
-                System.out.println("Mapped successfully");
                 if (dto.getImageName() != null) {
-                    System.out.println("Getting signed URL for image: " + dto.getImageName());
                     String signedUrl = gcsImageService.getSignedUrl(dto.getImageName());
                     dto.setImageUrl(signedUrl);
-                    System.out.println("Got signed URL");
                 }
                 allDateItemDtos.add(dto);
             }
         }
+        allDateItemDtos.sort(Comparator.comparing(DateItemDto::getPriority));
 
         // Set signed URL for itinerary image
         if (itinerary.getImageName() != null) {
@@ -238,11 +236,17 @@ public class ItineraryController {
             itinerary.setCoverImageUrl(signedUrl);
         }
 
+        InputStream imgStream = getClass().getClassLoader().getResourceAsStream("static/img/edge-fade.png");
+        byte[] imgBytes = imgStream.readAllBytes();
+        String edgeFadeUrl = "data:image/png;base64," + Base64.getEncoder().encodeToString(imgBytes);
+
         // Render Thymeleaf template to HTML
         Context context = new Context();
         context.setVariable("itinerary", itinerary);
         context.setVariable("dateItems", allDateItemDtos);
+        context.setVariable("edgeFadeUrl", edgeFadeUrl);
         String html = templateEngine.process("itinerary-pdf", context);
+        html = html.replaceAll("&(?![a-zA-Z]{2,6};|#[0-9]{2,5};)", "&amp;");
 
         // Convert HTML to PDF
         ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
@@ -297,6 +301,7 @@ public class ItineraryController {
             dateDto.setDate(dateItem.getDate().getDate());
             dto.setDate(dateDto);
         }
+        dto.setPriority(dateItem.getPriority());
         return dto;
     }
 }

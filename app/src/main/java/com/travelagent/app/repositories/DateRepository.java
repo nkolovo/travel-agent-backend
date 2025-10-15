@@ -15,4 +15,7 @@ public interface DateRepository extends JpaRepository<Date, Long> {
 
     @Query("SELECT d FROM Date d WHERE d.itinerary.id = :itinerary_id")
     List<Date> findAllByItineraryId(@Param("itinerary_id") Long itinerary_id);
+
+    @Query("SELECT new com.travelagent.app.dto.DateDto(d.id, d.name, d.location, d.date) FROM Date d WHERE d.itinerary.id = :itinerary_id ORDER BY d.date ASC")
+    List<DateDto> findAllDtosByItineraryId(@Param("itinerary_id") Long itinerary_id);
 }

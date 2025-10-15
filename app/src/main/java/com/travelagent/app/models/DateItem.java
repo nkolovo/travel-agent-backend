@@ -51,12 +51,12 @@ public class DateItem {
     @JsonProperty("image_name")
     private String imageName;
 
+    @Column(name = "priority")
+    private Short priority;
+
     // Constructors
     public DateItem() {
     }
-
-    @Column(name = "priority")
-    private Short priority; // or Integer/Long
 
     // getters and setters
     public DateItemId getId() {
