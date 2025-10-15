@@ -6,8 +6,6 @@ import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
-//import com.fasterxml.jackson.annotation.JsonBackReference;
-
 @Entity
 @Table(name = "items")
 public class Item {
@@ -21,8 +19,8 @@ public class Item {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
-    private int tripCost;
-    private int netCost;
+    private int retailPrice;
+    private int netPrice;
     private String imageName;
 
     @OneToMany(mappedBy = "item")
@@ -80,21 +78,20 @@ public class Item {
         this.description = description;
     }
 
-    public int getTripCost() {
-
-        return tripCost;
+    public int getRetailPrice() {
+        return retailPrice;
     }
 
-    public void setTripCost(int tripCost) {
-        this.tripCost = tripCost;
+    public void setRetailPrice(int retailPrice) {
+        this.retailPrice = retailPrice;
     }
 
-    public int getNetCost() {
-        return netCost;
+    public int getNetPrice() {
+        return netPrice;
     }
 
-    public void setNetCost(int netCost) {
-        this.netCost = netCost;
+    public void setNetPrice(int netPrice) {
+        this.netPrice = netPrice;
     }
 
     public Set<DateItem> getDateItems() {

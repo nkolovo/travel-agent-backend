@@ -11,7 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("SELECT new com.travelagent.app.dto.ItemDto(" +
-            "it.id, it.category, it.country, it.description, it.location, it.name, it.imageName " +
+            "it.id, it.category, it.country, it.description, it.location, it.name, it.retailPrice, it.netPrice, it.imageName "
+            +
             ") " +
             "FROM Item it WHERE it.id = :id")
     Optional<ItemDto> findByIdDto(@Param("id") Long id);

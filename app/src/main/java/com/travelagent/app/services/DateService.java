@@ -73,6 +73,12 @@ public class DateService {
                 String description = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getDescription()
                         : item.getDescription();
+                int retailPrice = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getRetailPrice()
+                        : item.getRetailPrice();
+                int netPrice = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getNetPrice()
+                        : item.getNetPrice();
                 String imageName = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getImageName()
                         : item.getImageName();
@@ -96,8 +102,8 @@ public class DateService {
                         item.getCategory(),
                         name,
                         description,
-                        item.getTripCost(),
-                        item.getNetCost(),
+                        retailPrice,
+                        netPrice,
                         imageName,
                         signedUrl,
                         priority));
@@ -128,6 +134,8 @@ public class DateService {
             dateItem.setCategory(item.getCategory());
             dateItem.setName(item.getName());
             dateItem.setDescription(item.getDescription());
+            dateItem.setRetailPrice(item.getRetailPrice());
+            dateItem.setNetPrice(item.getNetPrice());
             dateItem.setImageName(item.getImageName());
             dateItem.setPriority(priority);
             date.getDateItems().add(dateItem);
@@ -207,7 +215,7 @@ public class DateService {
 
     private ItemDto convertToDto(Item item) {
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
-                item.getCategory(), item.getName(), item.getDescription(), item.getTripCost(), item.getNetCost(),
+                item.getCategory(), item.getName(), item.getDescription(), item.getRetailPrice(), item.getNetPrice(),
                 item.getImageName());
     }
 }

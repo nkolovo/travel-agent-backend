@@ -42,11 +42,11 @@ public class DateItem {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @JsonProperty("trip_cost")
-    private int tripCost;
+    @JsonProperty("retail_price")
+    private int retailPrice;
 
-    @JsonProperty("net_cost")
-    private int netCost;
+    @JsonProperty("net_price")
+    private int netPrice;
 
     @JsonProperty("image_name")
     private String imageName;
@@ -123,20 +123,20 @@ public class DateItem {
         this.description = description;
     }
 
-    public int getTripCost() {
-        return tripCost;
+    public int getRetailPrice() {
+        return retailPrice;
     }
 
-    public void setTripCost(int tripCost) {
-        this.tripCost = tripCost;
+    public void setRetailPrice(int retailPrice) {
+        this.retailPrice = retailPrice;
     }
 
-    public int getNetCost() {
-        return netCost;
+    public int getNetPrice() {
+        return netPrice;
     }
 
-    public void setNetCost(int netCost) {
-        this.netCost = netCost;
+    public void setNetPrice(int netPrice) {
+        this.netPrice = netPrice;
     }
 
     public String getImageName() {

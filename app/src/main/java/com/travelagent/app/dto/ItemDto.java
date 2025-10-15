@@ -7,8 +7,8 @@ public class ItemDto {
     private String category;
     private String name;
     private String description;
-    private int tripCost;
-    private int netCost;
+    private int retailPrice;
+    private int netPrice;
     private String imageName;
     private String imageUrl;
 
@@ -18,22 +18,23 @@ public class ItemDto {
     public ItemDto(Long id, String country,
             String location, String category,
             String name, String description,
-            int tripCost, int netCost, String imageName) {
+            int retailPrice, int netPrice,
+            String imageName) {
         this.id = id;
         this.country = country;
         this.location = location;
         this.category = category;
         this.name = name;
         this.description = description;
-        this.tripCost = tripCost;
-        this.netCost = netCost;
+        this.retailPrice = retailPrice;
+        this.netPrice = netPrice;
         this.imageName = imageName;
     }
 
     public ItemDto(Long id, String country,
             String location, String category,
             String name, String description,
-            int tripCost, int netCost,
+            int retailPrice, int netPrice,
             String imageName, String imageUrl) {
         this.id = id;
         this.country = country;
@@ -41,8 +42,8 @@ public class ItemDto {
         this.category = category;
         this.name = name;
         this.description = description;
-        this.tripCost = tripCost;
-        this.netCost = netCost;
+        this.retailPrice = retailPrice;
+        this.netPrice = netPrice;
         this.imageName = imageName;
         this.imageUrl = imageUrl;
     }
@@ -95,20 +96,20 @@ public class ItemDto {
         this.description = description;
     }
 
-    public int getTripCost() {
-        return tripCost;
+    public int getRetailPrice() {
+        return retailPrice;
     }
 
-    public void setTripCost(int tripCost) {
-        this.tripCost = tripCost;
+    public void setRetailPrice(int retailPrice) {
+        this.retailPrice = retailPrice;
     }
 
-    public int getNetCost() {
-        return netCost;
+    public int getNetPrice() {
+        return netPrice;
     }
 
-    public void setNetCost(int netCost) {
-        this.netCost = netCost;
+    public void setNetPrice(int netPrice) {
+        this.netPrice = netPrice;
     }
 
     public String getImageName() {
