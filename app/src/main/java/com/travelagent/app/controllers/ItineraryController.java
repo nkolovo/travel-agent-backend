@@ -159,7 +159,6 @@ public class ItineraryController {
 
     @PostMapping("/update/name/{id}")
     public String updateItineraryName(@PathVariable Long id, @RequestBody String name) {
-        System.out.println("Updating itinerary name to: " + name);
         ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
         Itinerary itinerary = mapToItinerary(itineraryDto);
         itinerary.setName(name);
