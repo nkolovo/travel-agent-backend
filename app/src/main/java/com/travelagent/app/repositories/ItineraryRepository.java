@@ -15,18 +15,18 @@ public interface ItineraryRepository extends JpaRepository<Itinerary, Long> {
         @Query("SELECT new com.travelagent.app.dto.ItineraryDto(" +
                         "i.id, i.name, i.agent, i.createdDate, i.editedDate, i.dateSold, " +
                         "i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, " +
-                        "i.tripPrice, i.status, i.docsSent, i.imageName " +
+                        "i.tripPrice, i.netPrice, i.status, i.docsSent, i.imageName " +
                         ") " +
                         "FROM Itinerary i WHERE i.id = :id")
         Optional<ItineraryDto> findByIdDto(@Param("id") Long id);
 
-        @Query("SELECT new com.travelagent.app.dto.ItineraryDto(i.id, i.agent, i.createdDate, i.editedDate, i.dateSold, i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, i.tripPrice, i.status, i.docsSent) FROM Itinerary i ORDER BY i.editedDate DESC")
+        @Query("SELECT new com.travelagent.app.dto.ItineraryDto(i.id, i.agent, i.createdDate, i.editedDate, i.dateSold, i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, i.tripPrice, i.netPrice, i.status, i.docsSent) FROM Itinerary i ORDER BY i.editedDate DESC")
         List<ItineraryDto> findAllDtos();
 
         @Query("SELECT new com.travelagent.app.dto.ItineraryDto(" +
                         "i.id, i.agent, i.createdDate, i.editedDate, i.dateSold, " +
                         "i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, " +
-                        "i.tripPrice, i.status, i.docsSent) " +
+                        "i.tripPrice, i.netPrice, i.status, i.docsSent) " +
                         "FROM Itinerary i ORDER BY i.editedDate DESC")
         List<ItineraryDto> findAllByOrderByEditedDateDesc();
 
@@ -36,7 +36,7 @@ public interface ItineraryRepository extends JpaRepository<Itinerary, Long> {
         @Query("SELECT new com.travelagent.app.dto.ItineraryDto(" +
                         "i.id, i.agent, i.createdDate, i.editedDate, i.dateSold, " +
                         "i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, " +
-                        "i.tripPrice, i.status, i.docsSent) " +
+                        "i.tripPrice, i.netPrice, i.status, i.docsSent) " +
                         "FROM Itinerary i WHERE LOWER(i.reservationNumber) = LOWER(:reservationNumber) AND LOWER(i.leadName) LIKE LOWER(CONCAT('%', :leadName, '%'))")
         List<ItineraryDto> findByReservationNumberIgnoreCaseAndLeadNameContainingIgnoreCase(
                         @Param("reservationNumber") String reservationNumber,
@@ -45,14 +45,14 @@ public interface ItineraryRepository extends JpaRepository<Itinerary, Long> {
         @Query("SELECT new com.travelagent.app.dto.ItineraryDto(" +
                         "i.id, i.agent, i.createdDate, i.editedDate, i.dateSold, " +
                         "i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, " +
-                        "i.tripPrice, i.status, i.docsSent) " +
+                        "i.tripPrice, i.netPrice, i.status, i.docsSent) " +
                         "FROM Itinerary i WHERE LOWER(i.reservationNumber) = LOWER(:reservationNumber)")
         List<ItineraryDto> findByReservationNumberIgnoreCase(@Param("reservationNumber") String reservationNumber);
 
         @Query("SELECT new com.travelagent.app.dto.ItineraryDto(" +
                         "i.id, i.agent, i.createdDate, i.editedDate, i.dateSold, " +
                         "i.reservationNumber, i.leadName, i.numTravelers, i.arrivalDate, i.departureDate, " +
-                        "i.tripPrice, i.status, i.docsSent) " +
+                        "i.tripPrice, i.netPrice, i.status, i.docsSent) " +
                         "FROM Itinerary i WHERE LOWER(i.leadName) LIKE LOWER(CONCAT('%', :leadName, '%'))")
         List<ItineraryDto> findByLeadNameContainingIgnoreCase(@Param("leadName") String leadName);
 

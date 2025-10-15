@@ -55,6 +55,7 @@ public class Itinerary {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate departureDate;
     private int tripPrice;
+    private int netPrice;
     private String status;
     private boolean docsSent;
     @Column(name = "image_name")

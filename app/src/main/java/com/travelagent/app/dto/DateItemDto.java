@@ -9,6 +9,8 @@ public class DateItemDto {
     private String category;
     private String name;
     private String description;
+    private int tripCost;
+    private int netCost;
     private String imageName;
     private String imageUrl;
     private Short priority;
@@ -20,6 +22,7 @@ public class DateItemDto {
             ItemDto item, String country,
             String location, String category,
             String name, String description,
+            int tripCost, int netCost,
             String imageName, String imageUrl, Short priority) {
         this.id = id;
         this.date = date;
@@ -29,6 +32,8 @@ public class DateItemDto {
         this.category = category;
         this.name = name;
         this.description = description;
+        this.tripCost = tripCost;
+        this.netCost = netCost;
         this.imageName = imageName;
         this.imageUrl = imageUrl;
         this.priority = priority;
@@ -101,6 +106,22 @@ public class DateItemDto {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getTripCost() {
+        return tripCost;
+    }
+
+    public void setTripCost(int tripCost) {
+        this.tripCost = tripCost;
+    }
+
+    public int getNetCost() {
+        return netCost;
+    }
+
+    public void setNetCost(int netCost) {
+        this.netCost = netCost;
     }
 
     public void setImageName(String imageName) {

@@ -21,6 +21,7 @@ public class ItineraryDto {
     private LocalDate arrivalDate;
     private LocalDate departureDate;
     private int tripPrice;
+    private int netPrice;
     private String status;
     private boolean docsSent;
     private List<DateDto> dates;
@@ -32,7 +33,7 @@ public class ItineraryDto {
 
     public ItineraryDto(Long id, String agent, LocalDate createdDate, LocalDateTime editedDate, LocalDate dateSold,
             String reservationNumber, String leadName, int numTravelers, LocalDate arrivalDate,
-            LocalDate departureDate, int tripPrice, String status, boolean docsSent) {
+            LocalDate departureDate, int tripPrice, int netPrice, String status, boolean docsSent) {
         this.id = id;
         this.agent = agent;
         this.createdDate = createdDate;
@@ -44,13 +45,14 @@ public class ItineraryDto {
         this.arrivalDate = arrivalDate;
         this.departureDate = departureDate;
         this.tripPrice = tripPrice;
+        this.netPrice = netPrice;
         this.status = status;
         this.docsSent = docsSent;
     }
 
     public ItineraryDto(Long id, String name, String agent, LocalDate createdDate, LocalDateTime editedDate,
             LocalDate dateSold, String reservationNumber, String leadName, int numTravelers, LocalDate arrivalDate,
-            LocalDate departureDate, int tripPrice, String status, boolean docsSent, String imageName) {
+            LocalDate departureDate, int tripPrice, int netPrice, String status, boolean docsSent, String imageName) {
         this.id = id;
         this.name = name;
         this.agent = agent;
@@ -63,6 +65,7 @@ public class ItineraryDto {
         this.arrivalDate = arrivalDate;
         this.departureDate = departureDate;
         this.tripPrice = tripPrice;
+        this.netPrice = netPrice;
         this.status = status;
         this.docsSent = docsSent;
         this.imageName = imageName;
@@ -162,6 +165,14 @@ public class ItineraryDto {
 
     public void setTripPrice(int tripPrice) {
         this.tripPrice = tripPrice;
+    }
+
+    public int getNetPrice() {
+        return netPrice;
+    }
+
+    public void setNetPrice(int netPrice) {
+        this.netPrice = netPrice;
     }
 
     public String getStatus() {

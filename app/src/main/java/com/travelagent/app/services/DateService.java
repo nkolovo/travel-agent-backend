@@ -96,6 +96,8 @@ public class DateService {
                         item.getCategory(),
                         name,
                         description,
+                        item.getTripCost(),
+                        item.getNetCost(),
                         imageName,
                         signedUrl,
                         priority));
@@ -205,6 +207,7 @@ public class DateService {
 
     private ItemDto convertToDto(Item item) {
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
-                item.getCategory(), item.getName(), item.getDescription(), item.getImageName());
+                item.getCategory(), item.getName(), item.getDescription(), item.getTripCost(), item.getNetCost(),
+                item.getImageName());
     }
 }

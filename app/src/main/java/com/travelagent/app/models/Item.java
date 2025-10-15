@@ -21,6 +21,8 @@ public class Item {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
+    private int tripCost;
+    private int netCost;
     private String imageName;
 
     @OneToMany(mappedBy = "item")
@@ -76,6 +78,23 @@ public class Item {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public int getTripCost() {
+
+        return tripCost;
+    }
+
+    public void setTripCost(int tripCost) {
+        this.tripCost = tripCost;
+    }
+
+    public int getNetCost() {
+        return netCost;
+    }
+
+    public void setNetCost(int netCost) {
+        this.netCost = netCost;
     }
 
     public Set<DateItem> getDateItems() {

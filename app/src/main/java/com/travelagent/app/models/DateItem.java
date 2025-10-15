@@ -42,6 +42,12 @@ public class DateItem {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @JsonProperty("trip_cost")
+    private int tripCost;
+
+    @JsonProperty("net_cost")
+    private int netCost;
+
     @JsonProperty("image_name")
     private String imageName;
 
@@ -117,12 +123,20 @@ public class DateItem {
         this.description = description;
     }
 
-    public Short getPriority() {
-        return priority;
+    public int getTripCost() {
+        return tripCost;
     }
 
-    public void setPriority(Short priority) {
-        this.priority = priority;
+    public void setTripCost(int tripCost) {
+        this.tripCost = tripCost;
+    }
+
+    public int getNetCost() {
+        return netCost;
+    }
+
+    public void setNetCost(int netCost) {
+        this.netCost = netCost;
     }
 
     public String getImageName() {
@@ -131,5 +145,13 @@ public class DateItem {
 
     public void setImageName(String imageName) {
         this.imageName = imageName;
+    }
+
+    public Short getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Short priority) {
+        this.priority = priority;
     }
 }

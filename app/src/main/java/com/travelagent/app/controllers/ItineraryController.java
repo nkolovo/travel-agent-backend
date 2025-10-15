@@ -119,16 +119,18 @@ public class ItineraryController {
     @PatchMapping("/update")
     public ResponseEntity<String> updateItinerary(@RequestBody Map<String, Object> updates) {
         try {
+            Long itineraryId = Long.valueOf((int) updates.get("itineraryId"));
+            Itinerary itinerary = itineraryService.getEntityById(itineraryId);
+
             String title = (String) updates.get("title");
             int tripCost = (int) updates.get("tripCost");
-
-            Long itineraryId = Long.valueOf((int) updates.get("itineraryId"));
-            ItineraryDto itineraryDto = itineraryService.getItineraryById(itineraryId);
-            Itinerary itinerary = mapToItinerary(itineraryDto);
+            int netCost = (int) updates.get("netCost");
 
             itinerary.setName(title);
             itinerary.setTripPrice(tripCost);
+            itinerary.setNetPrice(netCost);
             itinerary.setEditedDate(LocalDateTime.now());
+
             itineraryService.saveItinerary(itinerary);
             return ResponseEntity.ok("Itinerary updated successfully.");
         } catch (Exception e) {
@@ -154,6 +156,7 @@ public class ItineraryController {
 
     @PostMapping("/update/name/{id}")
     public String updateItineraryName(@PathVariable Long id, @RequestBody String name) {
+        System.out.println("Updating itinerary name to: " + name);
         ItineraryDto itineraryDto = itineraryService.getItineraryById(id);
         Itinerary itinerary = mapToItinerary(itineraryDto);
         itinerary.setName(name);
