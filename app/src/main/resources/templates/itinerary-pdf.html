@@ -25,11 +25,19 @@
         color: var(--text);
         margin: 0 auto;
         padding: 40px 28px;
-        max-width: 960px; /* keeps PDF output tidy */
+        max-width: 960px;
         line-height: 1.5;
       }
 
       /* ---------- Header ---------- */
+      .company-logo {
+        width: 160px;
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto 24px auto;
+      }
+
       .header {
         text-align: center;
         margin-bottom: 26px;
@@ -49,46 +57,41 @@
         margin: 0 auto 16px auto;
       }
 
-      /* ---------- Info Row (replaces table) ---------- */
       .info-row {
-        /* Fallback for OpenHTMLtoPDF (no flex support) */
         text-align: center;
         margin: 8px auto 10px auto;
         padding: 12px 14px;
         max-width: 880px;
       }
-      /* Browsers will use flex, PDF will ignore this unknown value and keep fallback above */
       .info-row {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
       }
       .info-item {
-        /* Fallback inline layout for PDF */
         display: inline-block;
         vertical-align: middle;
-        margin: 2px 2px;
+        margin: 5px 5px;
         padding: 10px 10px;
-        border-radius: 9999px; /* pill */
+        border-radius: 50px;
         background: #70a7df;
       }
-      /* Browsers will prefer this; PDF engine ignores 'inline-flex' */
       .info-item {
         display: inline-flex;
         align-items: baseline;
-        gap: 2px;
+        gap: 1px;
       }
       .info-item .label {
         font-weight: 600;
-        color: #6b7280;
+        color: white;
         white-space: nowrap;
+        margin-right: 4px;
       }
       .info-item .value {
         color: #111827;
         white-space: nowrap;
       }
 
-      /* When long values exist, allow wrap on small screens */
       @media (max-width: 560px) {
         .info-item {
           white-space: normal;
@@ -98,17 +101,28 @@
         }
       }
 
-      /* ---------- Sections ---------- */
       .section {
         margin: 26px 0 34px 0;
       }
 
       .date-header {
+        position: relative;
         font-size: 18px;
         font-weight: 700;
-        margin: 18px 0 10px 0;
-        padding-bottom: 8px;
-        border-bottom: 1px solid var(--border);
+        margin: 24px 0 14px;
+        padding-bottom: 0;
+        border-bottom: none;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .date-underline-img {
+        width: 100%;
+        height: 3px;
+        margin-top: 2px;
+        margin-bottom: 0;
+        display: block;
       }
 
       .dateitem {
@@ -119,8 +133,11 @@
         background: #fff;
       }
       .dateitem h3 {
-        margin: 0 0 8px 0;
+        position: relative;
         font-size: 18px;
+        margin: 12px 0 8px;
+        padding-left: 8px;
+        border-left: 3px solid #4a90e2; /* narrow colored bar */
       }
       .dateitem-image {
         width: 240px;
@@ -134,7 +151,6 @@
         margin-top: 6px;
       }
 
-      /* ---------- Print tweaks ---------- */
       @media print {
         body {
           padding: 0 10mm;
@@ -154,6 +170,14 @@
     </style>
   </head>
   <body>
+    <!-- Company Logo -->
+    <img
+      th:if="${companyLogoUrl != null}"
+      th:src="${companyLogoUrl}"
+      class="company-logo"
+      alt="Company Logo"
+    />
+
     <div class="header">
       <h1 th:utext="${itinerary.name}">Itinerary Name</h1>
 
@@ -164,7 +188,6 @@
         alt="Itinerary Image"
       />
 
-      <!-- INFO ROW (chips) -->
       <div class="info-row">
         <div class="info-item" th:if="${itinerary.agent != null}">
           <span class="label">Agent</span>
@@ -173,7 +196,7 @@
         <div class="info-item" th:if="${itinerary.reservationNumber != null}">
           <span class="label">Reservation #</span>
           <span class="value" th:utext="${itinerary.reservationNumber}"
-            >ABC123</span
+            >PG000000</span
           >
         </div>
         <div class="info-item" th:if="${itinerary.numTravelers != null}">
@@ -182,33 +205,37 @@
         </div>
         <div class="info-item" th:if="${itinerary.arrivalDate != null}">
           <span class="label">Arrival</span>
-          <span class="value" th:utext="${itinerary.arrivalDate}"
-            >2025-06-02</span
+          <span
+            class="value"
+            th:text="${#temporals.format(itinerary.arrivalDate, 'MMMM d, yyyy')}"
+            >January 1, 2026</span
           >
         </div>
         <div class="info-item" th:if="${itinerary.departureDate != null}">
           <span class="label">Departure</span>
-          <span class="value" th:utext="${itinerary.departureDate}"
-            >2025-06-12</span
+          <span
+            class="value"
+            th:text="${#temporals.format(itinerary.departureDate, 'MMMM d, yyyy')}"
+            >January 1, 2026</span
           >
         </div>
         <div class="info-item" th:if="${itinerary.tripPrice != null}">
           <span class="label">Trip Price</span>
-          <span class="value" th:utext="${itinerary.tripPrice}">€7,200</span>
+          <span class="value" th:utext="'€' + ${itinerary.tripPrice}"
+            >€7,200</span
+          >
         </div>
       </div>
     </div>
 
-    <!-- DATES & ITEMS -->
     <div class="section" th:each="date : ${itinerary.dates}">
       <div class="date-header">
-        <span th:utext="${date.name}">Date Name</span>
-        <span th:utext="' (' + ${date.date} + ')'">Date</span>
         <span
-          th:if="${date.location != null}"
-          th:utext="' – ' + ${date.location}"
-          >Location</span
+          th:utext="${#temporals.format(#temporals.createDate(date.date), 'MMMM d, yyyy')}"
+          >Date</span
         >
+        <span th:utext="' - ' + ${date.name}">Date Name</span>
+        <img th:src="${edgeFadeUrl}" class="date-underline-img" />
       </div>
 
       <div
