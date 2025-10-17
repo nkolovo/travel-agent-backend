@@ -2,7 +2,9 @@ package com.travelagent.app.services;
 
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItineraryDto;
+
 import com.travelagent.app.models.Date;
+import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 
 import com.travelagent.app.repositories.DateRepository;
@@ -151,6 +153,20 @@ public class ItineraryService {
     public boolean removeDateFromItinerary(Long dateId, Long itineraryId) {
         try {
             itineraryRepository.findById(itineraryId).ifPresent(itinerary -> {
+                // Get the date to be removed,
+                // and update itinerary trip and net prices accordingly
+                dateRepository.findById(dateId).ifPresent(date -> {
+                    int dateItemsRetailTotal = 0;
+                    int dateItemsNetTotal = 0;
+                    for (DateItem di : date.getDateItems()) {
+                        dateItemsRetailTotal += di.getRetailPrice();
+                        dateItemsNetTotal += di.getNetPrice();
+                    }
+                    if (dateItemsRetailTotal > 0 || dateItemsNetTotal > 0) {
+                        itinerary.setTripPrice(itinerary.getTripPrice() - dateItemsRetailTotal);
+                        itinerary.setNetPrice(itinerary.getNetPrice() - dateItemsNetTotal);
+                    }
+                });
                 // Remove the date
                 itinerary.getDates().removeIf(date -> date.getId().equals(dateId));
 

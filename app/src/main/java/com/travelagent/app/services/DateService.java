@@ -1,16 +1,20 @@
 package com.travelagent.app.services;
 
 import com.travelagent.app.models.Item;
+import com.travelagent.app.models.Itinerary;
+
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItemDto;
+
 import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.DateItemId;
+
+import com.travelagent.app.repositories.ItineraryRepository;
 import com.travelagent.app.repositories.DateItemRepository;
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItemRepository;
-import com.travelagent.app.repositories.ItineraryRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 @Service
 public class DateService {
 
+    private final ItineraryRepository itineraryRepository;
     private final DateRepository dateRepository;
     private final ItemRepository itemRepository;
     private final DateItemRepository dateItemRepository;
@@ -34,8 +39,10 @@ public class DateService {
     @Autowired
     private GcsImageService gcsImageService;
 
-    public DateService(DateRepository dateRepository, ItemRepository itemRepository,
-            ItineraryRepository itineraryRepository, DateItemRepository dateItemRepository) {
+    public DateService(ItineraryRepository itineraryRepository, DateRepository dateRepository,
+            ItemRepository itemRepository,
+            DateItemRepository dateItemRepository) {
+        this.itineraryRepository = itineraryRepository;
         this.dateRepository = dateRepository;
         this.itemRepository = itemRepository;
         this.dateItemRepository = dateItemRepository;
@@ -140,6 +147,13 @@ public class DateService {
             dateItem.setPriority(priority);
             date.getDateItems().add(dateItem);
 
+            // Add item prices to itinerary totals, if applicable
+            if (dateItem.getRetailPrice() != 0 || dateItem.getNetPrice() != 0) {
+                Itinerary itinerary = date.getItinerary();
+                itinerary.setTripPrice(itinerary.getTripPrice() + item.getRetailPrice());
+                itinerary.setNetPrice(itinerary.getNetPrice() + item.getNetPrice());
+                itineraryRepository.save(itinerary);
+            }
             // Save the DateItem using a DateItemRepository
             dateRepository.save(date);
 
@@ -154,27 +168,39 @@ public class DateService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Could not find item with ID " + itemId));
         DateItem dateItem = new DateItem();
-        // If the DateItem already exists, retrieve it and get its original priority
+        // If the DateItem already exists, retrieve it,
+        // get its original priority, and check if prices have changed
         Optional<DateItem> originalDateItem = dateItemRepository.findByDateIdAndItemId(dateId, itemId);
-        final Short originalPriority = originalDateItem.isPresent() ? originalDateItem.get().getPriority() : null;
+        if (originalDateItem.isPresent()) {
+            DateItem existingDateItem = originalDateItem.get();
+            int retailPriceDiff = dateItemDto.getRetailPrice() - existingDateItem.getRetailPrice();
+            int netPriceDiff = dateItemDto.getNetPrice() - existingDateItem.getNetPrice();
+            if (retailPriceDiff != 0 || netPriceDiff != 0) {
+                Itinerary itinerary = date.getItinerary();
+                itinerary.setTripPrice(itinerary.getTripPrice() + retailPriceDiff);
+                itinerary.setNetPrice(itinerary.getNetPrice() + netPriceDiff);
+                itineraryRepository.save(itinerary);
+            }
+            final Short originalPriority = existingDateItem.getPriority();
+            if (originalPriority != null) {
+                List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(dateId).stream()
+                        .filter(di -> di.getPriority() != null && dateItemDto.getPriority() != null
+                                && di.getPriority() >= dateItemDto.getPriority()
+                                && di.getPriority() < originalPriority
+                                && !di.getItem().getId().equals(itemId))
+                        .collect(Collectors.toList());
+
+                for (DateItem di : prioritiesToUpdate) {
+                    di.setPriority((short) (di.getPriority() + 1));
+                }
+                dateItemRepository.saveAll(prioritiesToUpdate);
+            }
+        }
         dateItem.setId(new DateItemId(dateId, itemId));
         dateItem = convertFromDto(dateItemDto);
         dateItem.setDate(date);
         dateItem.setItem(item);
 
-        if (originalPriority != null) {
-            List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(dateId).stream()
-                    .filter(di -> di.getPriority() != null && dateItemDto.getPriority() != null
-                            && di.getPriority() >= dateItemDto.getPriority()
-                            && di.getPriority() < originalPriority
-                            && !di.getItem().getId().equals(itemId))
-                    .collect(Collectors.toList());
-
-            for (DateItem di : prioritiesToUpdate) {
-                di.setPriority((short) (di.getPriority() + 1));
-            }
-            dateItemRepository.saveAll(prioritiesToUpdate);
-        }
         dateItemRepository.save(dateItem);
     }
 
@@ -185,6 +211,19 @@ public class DateService {
 
         if (dateOpt.isPresent() && itemOpt.isPresent()) {
             Date date = dateOpt.get();
+            DateItem dateItem = date.getDateItems().stream()
+                    .filter(di -> di.getItem().getId().equals(itemId))
+                    .findFirst()
+                    .orElse(null);
+            if (dateItem == null) {
+                throw new RuntimeException("DateItem not found for the given date and item IDs!");
+            } else if (dateItem.getRetailPrice() != 0 || dateItem.getNetPrice() != 0) {
+                Itinerary itinerary = date.getItinerary();
+                itinerary.setTripPrice(itinerary.getTripPrice() - dateItem.getRetailPrice());
+                itinerary.setNetPrice(itinerary.getNetPrice() - dateItem.getNetPrice());
+                itineraryRepository.save(itinerary);
+            }
+
             date.getDateItems().removeIf(di -> di.getItem().getId().equals(itemId));
             dateRepository.save(date); // Update the relationship
 
@@ -204,6 +243,8 @@ public class DateService {
         dateItem.setCategory(dateItemDto.getCategory());
         dateItem.setName(dateItemDto.getName());
         dateItem.setDescription(dateItemDto.getDescription());
+        dateItem.setRetailPrice(dateItemDto.getRetailPrice());
+        dateItem.setNetPrice(dateItemDto.getNetPrice());
         dateItem.setImageName(dateItemDto.getImageName());
         dateItem.setPriority(dateItemDto.getPriority());
         return dateItem;
