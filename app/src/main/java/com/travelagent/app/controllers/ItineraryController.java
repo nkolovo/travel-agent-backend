@@ -62,10 +62,8 @@ public class ItineraryController {
     public List<ItineraryDto> getAllItineraries(@RequestParam(required = false) String reservationNumber,
             @RequestParam(required = false) String leadName) {
         if (reservationNumber != null || leadName != null) {
-            // Filter
             return itineraryService.getItinerariesByFilters(reservationNumber, leadName);
         } else {
-            // Return db order
             return itineraryService.getAllItineraries();
         }
     }
