@@ -24,7 +24,6 @@ public class Client {
     @JsonManagedReference("client-itinerary")
     private List<Itinerary> itineraries;
 
-    // Constructors
     public Client() {
     }
 
