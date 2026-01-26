@@ -243,6 +243,7 @@ public class ItineraryController {
         context.setVariable("dateItems", allDateItemDtos);
         context.setVariable("edgeFadeUrl", edgeFadeUrl);
         String html = templateEngine.process("itinerary-pdf", context);
+        html = html.replace("&nbsp;", "&#160;");
         html = html.replaceAll("&(?![a-zA-Z]{2,6};|#[0-9]{2,5};)", "&amp;");
 
         // Convert HTML to PDF

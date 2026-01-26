@@ -126,7 +126,7 @@ public class DateService {
 
     public Date addItemToDate(Long dateId, Long itemId, Short priority) {
         Optional<Date> dateOpt = dateRepository.findById(dateId);
-        Optional<Item> itemOpt = itemRepository.findById(itemId);
+        Optional<Item> itemOpt = itemRepository.findActiveById(itemId);
 
         if (dateOpt.isPresent() && itemOpt.isPresent()) {
             Date date = dateOpt.get();
@@ -165,7 +165,7 @@ public class DateService {
     public void saveDateItemToDate(Long dateId, Long itemId, DateItemDto dateItemDto) {
         Date date = dateRepository.findById(dateId)
                 .orElseThrow(() -> new RuntimeException("Could not find date with ID " + dateId));
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findActiveById(itemId)
                 .orElseThrow(() -> new RuntimeException("Could not find item with ID " + itemId));
         DateItem dateItem = new DateItem();
         // If the DateItem already exists, retrieve it,
@@ -207,7 +207,7 @@ public class DateService {
     public void removeItemFromDate(Long dateId, Long itemId) {
         // Remove the item from the date's items set
         Optional<Date> dateOpt = dateRepository.findById(dateId);
-        Optional<Item> itemOpt = itemRepository.findById(itemId);
+        Optional<Item> itemOpt = itemRepository.findById(itemId); // Use findById here since we may need to remove deleted items from itineraries
 
         if (dateOpt.isPresent() && itemOpt.isPresent()) {
             Date date = dateOpt.get();

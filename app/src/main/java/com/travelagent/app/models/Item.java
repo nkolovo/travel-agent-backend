@@ -22,6 +22,9 @@ public class Item {
     private int retailPrice;
     private int netPrice;
     private String imageName;
+    
+    @Column(name = "deleted")
+    private boolean deleted = false;
 
     @OneToMany(mappedBy = "item")
     @JsonBackReference
@@ -108,5 +111,13 @@ public class Item {
 
     public void setImageName(String imageName) {
         this.imageName = imageName;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }
