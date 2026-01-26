@@ -35,7 +35,7 @@ public class ItemService {
     }
 
     public List<Item> getAllItems() {
-        List<Item> allItems = itemRepository.findAll();
+        List<Item> allItems = itemRepository.findAllActive();
         List<Item> sortedItems = allItems.stream()
                 .sorted((item1, item2) -> item1.getName().compareTo(item2.getName()))
                 .toList();
@@ -62,7 +62,27 @@ public class ItemService {
     }
 
     public void removeItem(Long id) {
-        itemRepository.deleteById(id);
+        // Soft delete: mark the item as deleted instead of actually deleting it
+        Optional<Item> itemOpt = itemRepository.findById(id);
+        if (itemOpt.isPresent()) {
+            Item item = itemOpt.get();
+            item.setDeleted(true);
+            itemRepository.save(item);
+        } else {
+            throw new RuntimeException("Item not found with ID: " + id);
+        }
+    }
+
+    public void restoreItem(Long id) {
+        // Restore a soft-deleted item
+        Optional<Item> itemOpt = itemRepository.findById(id);
+        if (itemOpt.isPresent()) {
+            Item item = itemOpt.get();
+            item.setDeleted(false);
+            itemRepository.save(item);
+        } else {
+            throw new RuntimeException("Item not found with ID: " + id);
+        }
     }
 
     public ItemDto getItemById(Long id) {
@@ -80,8 +100,8 @@ public class ItemService {
     }
 
     public Item getEntityById(Long id) {
-        return itemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Itinerary not found"));
+        return itemRepository.findActiveById(id)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
     }
 
     public List<String> getCountries() {

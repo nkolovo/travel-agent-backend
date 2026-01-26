@@ -47,6 +47,11 @@ public class ItemController {
         itemService.removeItem(id);
     }
 
+    @PostMapping("/restore/{id}")
+    public void restoreItem(@PathVariable Long id) {
+        itemService.restoreItem(id);
+    }
+
     @PostMapping("/{id}/upload-image")
     public ResponseEntity<String> uploadImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
