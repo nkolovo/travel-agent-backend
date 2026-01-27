@@ -1,6 +1,6 @@
 package com.travelagent.app.controllers;
 
-import com.travelagent.app.models.DateItem;
+import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.services.DateItemService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +16,7 @@ public class DateItemController {
     }
 
     @GetMapping("/date/{dateId}")
-    public List<DateItem> getDateItemsByDate(@PathVariable Long dateId) {
+    public List<DateItemDto> getDateItemsByDate(@PathVariable Long dateId) {
         return dateItemService.getDateItemsByDate(dateId);
     }
 }

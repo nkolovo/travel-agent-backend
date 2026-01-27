@@ -5,6 +5,7 @@ import com.travelagent.app.models.Date;
 import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.User;
+import com.travelagent.app.models.Supplier;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import com.travelagent.app.dto.DateDto;
@@ -215,9 +216,8 @@ public class ItineraryController {
         // Collect all DateItemDtos for all dates in the itinerary
         List<DateItemDto> allDateItemDtos = new ArrayList<>();
         for (DateDto date : dates) {
-            List<DateItem> dateItems = dateItemService.getDateItemsByDate(date.getId());
-            for (DateItem dateItem : dateItems) {
-                DateItemDto dto = mapToDateItemDto(dateItem);
+            List<DateItemDto> dateItems = dateItemService.getDateItemsByDate(date.getId());
+            for (DateItemDto dto : dateItems) {
                 if (dto.getImageName() != null) {
                     String signedUrl = gcsImageService.getSignedUrl(dto.getImageName());
                     dto.setImageUrl(signedUrl);
@@ -283,23 +283,5 @@ public class ItineraryController {
         itinerary.setDocsSent(itineraryDto.isDocsSent());
         itinerary.setImageName(itineraryDto.getImageName());
         return itinerary;
-    }
-
-    private DateItemDto mapToDateItemDto(DateItem dateItem) {
-        DateItemDto dto = new DateItemDto();
-        dto.setId(dateItem.getId().getItemId());
-        dto.setName(dateItem.getName());
-        dto.setDescription(dateItem.getDescription());
-        dto.setDate(itineraryService.mapToDateDto(dateItem.getDate()));
-        dto.setLocation(dateItem.getLocation());
-        dto.setImageName(dateItem.getImageName());
-        if (dateItem.getDate() != null) {
-            DateDto dateDto = new DateDto();
-            dateDto.setId(dateItem.getDate().getId());
-            dateDto.setDate(dateItem.getDate().getDate());
-            dto.setDate(dateDto);
-        }
-        dto.setPriority(dateItem.getPriority());
-        return dto;
     }
 }

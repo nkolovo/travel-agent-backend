@@ -1,7 +1,6 @@
 package com.travelagent.app.controllers;
 
 import com.travelagent.app.dto.ItemDto;
-import com.travelagent.app.models.Item;
 import com.travelagent.app.services.ItemService;
 import com.travelagent.app.services.GcsImageService;
 
@@ -32,7 +31,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<Item> getAllItems() {
+    public List<ItemDto> getAllItems() {
         return itemService.getAllItems();
     }
 

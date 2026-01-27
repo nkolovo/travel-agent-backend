@@ -10,7 +10,9 @@ public class ItemDto {
     private int retailPrice;
     private int netPrice;
     private String imageName;
-    private String imageUrl;
+    private String supplierName;
+    private String supplierContact;
+    private String supplierUrl;
 
     public ItemDto() {
     }
@@ -35,7 +37,8 @@ public class ItemDto {
             String location, String category,
             String name, String description,
             int retailPrice, int netPrice,
-            String imageName, String imageUrl) {
+            String imageName, String supplierName, 
+            String supplierContact, String supplierUrl) {
         this.id = id;
         this.country = country;
         this.location = location;
@@ -45,7 +48,9 @@ public class ItemDto {
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
         this.imageName = imageName;
-        this.imageUrl = imageUrl;
+        this.supplierName = supplierName;
+        this.supplierContact = supplierContact;
+        this.supplierUrl = supplierUrl;
     }
 
     public Long getId() {
@@ -120,12 +125,27 @@ public class ItemDto {
         this.imageName = imageName;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getSupplierName() {
+        return supplierName;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
     }
 
+    public String getSupplierContact() {
+        return supplierContact;
+    }
+
+    public void setSupplierContact(String supplierContact) {
+        this.supplierContact = supplierContact;
+    }
+
+    public String getSupplierUrl() {
+        return supplierUrl;
+    }
+
+    public void setSupplierUrl(String supplierUrl) {
+        this.supplierUrl = supplierUrl;
+    }
 }

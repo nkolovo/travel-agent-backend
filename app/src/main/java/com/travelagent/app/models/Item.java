@@ -22,9 +22,12 @@ public class Item {
     private int retailPrice;
     private int netPrice;
     private String imageName;
-    
-    @Column(name = "deleted")
     private boolean deleted = false;
+
+    @ManyToOne
+    @JoinColumn(name = "supplier_id")
+    @JsonBackReference("supplier-item")
+    private Supplier supplier;
 
     @OneToMany(mappedBy = "item")
     @JsonBackReference
@@ -119,5 +122,13 @@ public class Item {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
     }
 }
