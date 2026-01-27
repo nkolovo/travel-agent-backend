@@ -5,15 +5,17 @@ public class SupplierDto {
     private String name;
     private String contact;
     private String url;
+    private boolean deleted;
 
     public SupplierDto() {
     }
 
-    public SupplierDto(Long id, String name, String contact, String url) {
+    public SupplierDto(Long id, String name, String contact, String url, boolean deleted) {
         this.id = id;
         this.name = name;
         this.contact = contact;
         this.url = url;
+        this.deleted = deleted;
     }
 
     public Long getId() {
@@ -46,5 +48,13 @@ public class SupplierDto {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }
