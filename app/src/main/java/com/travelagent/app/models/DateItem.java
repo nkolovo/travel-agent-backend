@@ -1,5 +1,7 @@
 package com.travelagent.app.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Column;
@@ -19,12 +21,23 @@ public class DateItem {
     @ManyToOne
     @MapsId("dateId")
     @JoinColumn(name = "date_id")
+    @JsonIgnore
     private Date date;
 
     @ManyToOne
     @MapsId("itemId")
     @JoinColumn(name = "item_id")
+    @JsonIgnore
     private Item item;
+
+    @JsonProperty("supplier_name")
+    private String supplierName;
+
+    @JsonProperty("supplier_contact")
+    private String supplierContact;
+
+    @JsonProperty("supplier_url")
+    private String supplierUrl;
 
     @JsonProperty("country")
     private String country;
@@ -153,5 +166,29 @@ public class DateItem {
 
     public void setPriority(Short priority) {
         this.priority = priority;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getSupplierContact() {
+        return supplierContact;
+    }
+
+    public void setSupplierContact(String supplierContact) {
+        this.supplierContact = supplierContact;
+    }
+
+    public String getSupplierUrl() {
+        return supplierUrl;
+    }
+
+    public void setSupplierUrl(String supplierUrl) {
+        this.supplierUrl = supplierUrl;
     }
 }

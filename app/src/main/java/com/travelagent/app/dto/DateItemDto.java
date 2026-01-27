@@ -9,6 +9,9 @@ public class DateItemDto {
     private String category;
     private String name;
     private String description;
+    private String supplierName;
+    private String supplierContact;
+    private String supplierUrl;
     private int retailPrice;
     private int netPrice;
     private String imageName;
@@ -22,8 +25,10 @@ public class DateItemDto {
             ItemDto item, String country,
             String location, String category,
             String name, String description,
-            int retailPrice, int netPrice,
-            String imageName, String imageUrl, Short priority) {
+            String supplierName, String supplierContact,
+            String supplierUrl, int retailPrice,
+            int netPrice, String imageName,
+            String imageUrl, Short priority) {
         this.id = id;
         this.date = date;
         this.item = item;
@@ -32,6 +37,9 @@ public class DateItemDto {
         this.category = category;
         this.name = name;
         this.description = description;
+        this.supplierName = supplierName;
+        this.supplierContact = supplierContact;
+        this.supplierUrl = supplierUrl;
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
         this.imageName = imageName;
@@ -106,6 +114,30 @@ public class DateItemDto {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getSupplierContact() {
+        return supplierContact;
+    }
+
+    public void setSupplierContact(String supplierContact) {
+        this.supplierContact = supplierContact;
+    }
+
+    public String getSupplierUrl() {
+        return supplierUrl;
+    }
+
+    public void setSupplierUrl(String supplierUrl) {
+        this.supplierUrl = supplierUrl;
     }
 
     public int getRetailPrice() {

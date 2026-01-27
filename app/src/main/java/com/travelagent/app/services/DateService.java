@@ -2,7 +2,7 @@ package com.travelagent.app.services;
 
 import com.travelagent.app.models.Item;
 import com.travelagent.app.models.Itinerary;
-
+import com.travelagent.app.models.Supplier;
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItemDto;
@@ -80,6 +80,19 @@ public class DateService {
                 String description = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getDescription()
                         : item.getDescription();
+                // Get supplier info from DateItem if available, otherwise from Item
+                String supplierName, supplierContact, supplierUrl;
+                if (dateItemMap.containsKey(item.getId())) {
+                    DateItem dateItemInfo = dateItemMap.get(item.getId());
+                    supplierName = dateItemInfo.getSupplierName();
+                    supplierContact = dateItemInfo.getSupplierContact();
+                    supplierUrl = dateItemInfo.getSupplierUrl();
+                } else {
+                    Supplier itemSupplier = item.getSupplier();
+                    supplierName = itemSupplier != null ? itemSupplier.getName() : null;
+                    supplierContact = itemSupplier != null ? itemSupplier.getContact() : null;
+                    supplierUrl = itemSupplier != null ? itemSupplier.getUrl() : null;
+                }
                 int retailPrice = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getRetailPrice()
                         : item.getRetailPrice();
@@ -109,6 +122,9 @@ public class DateService {
                         item.getCategory(),
                         name,
                         description,
+                        supplierName,
+                        supplierContact,
+                        supplierUrl,
                         retailPrice,
                         netPrice,
                         imageName,
@@ -131,7 +147,6 @@ public class DateService {
         if (dateOpt.isPresent() && itemOpt.isPresent()) {
             Date date = dateOpt.get();
             Item item = itemOpt.get();
-
             DateItem dateItem = new DateItem();
             dateItem.setId(new DateItemId(date.getId(), item.getId()));
             dateItem.setDate(date);
@@ -145,6 +160,14 @@ public class DateService {
             dateItem.setNetPrice(item.getNetPrice());
             dateItem.setImageName(item.getImageName());
             dateItem.setPriority(priority);
+
+            // Set supplier information from the item
+            var supplier = item.getSupplier();
+            if (supplier != null) {
+                dateItem.setSupplierName(supplier.getName());
+                dateItem.setSupplierContact(supplier.getContact());
+                dateItem.setSupplierUrl(supplier.getUrl());
+            }
             date.getDateItems().add(dateItem);
 
             // Add item prices to itinerary totals, if applicable
@@ -207,7 +230,8 @@ public class DateService {
     public void removeItemFromDate(Long dateId, Long itemId) {
         // Remove the item from the date's items set
         Optional<Date> dateOpt = dateRepository.findById(dateId);
-        Optional<Item> itemOpt = itemRepository.findById(itemId); // Use findById here since we may need to remove deleted items from itineraries
+        Optional<Item> itemOpt = itemRepository.findById(itemId); // Use findById here since we may need to remove
+                                                                  // deleted items from itineraries
 
         if (dateOpt.isPresent() && itemOpt.isPresent()) {
             Date date = dateOpt.get();
@@ -247,6 +271,13 @@ public class DateService {
         dateItem.setNetPrice(dateItemDto.getNetPrice());
         dateItem.setImageName(dateItemDto.getImageName());
         dateItem.setPriority(dateItemDto.getPriority());
+
+        // Set supplier information directly in DateItem (no relationship to Supplier
+        // table)
+        dateItem.setSupplierName(dateItemDto.getSupplierName());
+        dateItem.setSupplierContact(dateItemDto.getSupplierContact());
+        dateItem.setSupplierUrl(dateItemDto.getSupplierUrl());
+
         return dateItem;
     }
 
@@ -255,8 +286,12 @@ public class DateService {
     }
 
     private ItemDto convertToDto(Item item) {
+        var supplier = item.getSupplier();
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
                 item.getCategory(), item.getName(), item.getDescription(), item.getRetailPrice(), item.getNetPrice(),
-                item.getImageName());
+                item.getImageName(),
+                supplier != null ? supplier.getName() : null,
+                supplier != null ? supplier.getContact() : null,
+                supplier != null ? supplier.getUrl() : null);
     }
 }
