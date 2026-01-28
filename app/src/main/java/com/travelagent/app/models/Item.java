@@ -21,7 +21,12 @@ public class Item {
     private String description;
     private int retailPrice;
     private int netPrice;
-    private String imageName;
+
+    @ElementCollection
+    @CollectionTable(name = "item_images", joinColumns = @JoinColumn(name = "item_id"))
+    @Column(name = "image_name")
+    private Set<String> imageNames = new HashSet<>();
+
     private boolean deleted = false;
 
     @ManyToOne
@@ -108,12 +113,12 @@ public class Item {
         this.dateItems = dateItems;
     }
 
-    public String getImageName() {
-        return imageName;
+    public Set<String> getImageNames() {
+        return imageNames;
     }
 
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
+    public void setImageNames(Set<String> imageNames) {
+        this.imageNames = imageNames != null ? imageNames : new HashSet<>();
     }
 
     public boolean isDeleted() {

@@ -45,7 +45,7 @@ public class DateItemService {
         dto.setSupplierUrl(dateItem.getSupplierUrl());
         dto.setRetailPrice(dateItem.getRetailPrice());
         dto.setNetPrice(dateItem.getNetPrice());
-        dto.setImageName(dateItem.getImageName());
+        dto.setImageNames(dateItem.getImageNames());
         dto.setPriority(dateItem.getPriority());
 
         // Convert related entities to DTOs
@@ -69,7 +69,7 @@ public class DateItemService {
                     item.getDescription(),
                     item.getRetailPrice(),
                     item.getNetPrice(),
-                    item.getImageName());
+                    item.getImageNames());
             dto.setItem(itemDto);
         }
 

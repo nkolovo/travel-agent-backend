@@ -1,5 +1,7 @@
 package com.travelagent.app.models;
 
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -62,7 +64,7 @@ public class DateItem {
     private int netPrice;
 
     @JsonProperty("image_name")
-    private String imageName;
+    private Set<String> imageNames;
 
     @Column(name = "priority")
     private Short priority;
@@ -152,12 +154,12 @@ public class DateItem {
         this.netPrice = netPrice;
     }
 
-    public String getImageName() {
-        return imageName;
+    public Set<String> getImageNames() {
+        return imageNames;
     }
 
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
+    public void setImageNames(Set<String> imageNames) {
+        this.imageNames = imageNames;
     }
 
     public Short getPriority() {

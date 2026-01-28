@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
-    <title th:utext="${itinerary.name} + ' - Itinerary'">Itinerary</title>
+    <title th:text="${itinerary.name} + ' - Itinerary'">Itinerary</title>
     <style>
       :root {
         --text: #1a1a1a;
@@ -20,8 +20,16 @@
         box-sizing: border-box;
       }
       body {
-        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
-          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          Helvetica,
+          Arial,
+          "Apple Color Emoji",
+          "Segoe UI Emoji";
         color: var(--text);
         margin: 0 auto;
         padding: 40px 28px;
@@ -179,7 +187,7 @@
     />
 
     <div class="header">
-      <h1 th:utext="${itinerary.name}">Itinerary Name</h1>
+      <h1 th:text="${itinerary.name}">Itinerary Name</h1>
 
       <img
         th:if="${itinerary.coverImageUrl != null}"
@@ -191,11 +199,11 @@
       <div class="info-row">
         <div class="info-item" th:if="${itinerary.agent != null}">
           <span class="label">Agent</span>
-          <span class="value" th:utext="${itinerary.agent}">Agent Name</span>
+          <span class="value" th:text="${itinerary.agent}">Agent Name</span>
         </div>
         <div class="info-item" th:if="${itinerary.reservationNumber != null}">
           <span class="label">Reservation #</span>
-          <span class="value" th:utext="${itinerary.reservationNumber}"
+          <span class="value" th:text="${itinerary.reservationNumber}"
             >PG000000</span
           >
         </div>
@@ -234,7 +242,7 @@
           th:utext="${#temporals.format(#temporals.createDate(date.date), 'MMMM d, yyyy')}"
           >Date</span
         >
-        <span th:utext="' - ' + ${date.name}">Date Name</span>
+        <span th:text="' - ' + ${date.name}">Date Name</span>
         <img th:src="${edgeFadeUrl}" class="date-underline-img" />
       </div>
 
@@ -243,13 +251,15 @@
         th:if="${dateItem.date.id == date.id}"
         class="dateitem"
       >
-        <h3 th:utext="${dateItem.name}">DateItem Title</h3>
-        <img
-          th:if="${dateItem.imageUrl != null}"
-          th:src="${dateItem.imageUrl}"
-          class="dateitem-image"
-          alt="DateItem Image"
-        />
+        <h3 th:text="${dateItem.name}">DateItem Title</h3>
+        <div th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}">
+          <img
+            th:each="imageUrl : ${dateItem.imageUrls}"
+            th:src="${imageUrl}"
+            class="dateitem-image"
+            alt="DateItem Image"
+          />
+        </div>
         <div class="description" th:utext="${dateItem.description}">
           DateItem Description
         </div>

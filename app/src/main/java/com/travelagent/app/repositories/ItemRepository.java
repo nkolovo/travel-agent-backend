@@ -23,12 +23,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     // Find active item by ID
     @Query("SELECT i FROM Item i WHERE i.id = :id AND i.deleted = false")
     Optional<Item> findActiveById(@Param("id") Long id);
-    
-    @Query("SELECT new com.travelagent.app.dto.ItemDto(" +
-            "it.id, it.category, it.country, it.description, it.location, it.name, it.retailPrice, it.netPrice, it.imageName "
-            +
-            ") " +
-            "FROM Item it WHERE it.id = :id AND it.deleted = false")
-    Optional<ItemDto> findByIdDto(@Param("id") Long id);
 
 }

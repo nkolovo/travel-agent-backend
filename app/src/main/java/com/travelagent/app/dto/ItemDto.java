@@ -1,5 +1,8 @@
 package com.travelagent.app.dto;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class ItemDto {
     private Long id;
     private String country;
@@ -9,7 +12,7 @@ public class ItemDto {
     private String description;
     private int retailPrice;
     private int netPrice;
-    private String imageName;
+    private Set<String> imageNames = new HashSet<>();
     private String supplierName;
     private String supplierContact;
     private String supplierUrl;
@@ -21,7 +24,7 @@ public class ItemDto {
             String location, String category,
             String name, String description,
             int retailPrice, int netPrice,
-            String imageName) {
+            Set<String> imageNames) {
         this.id = id;
         this.country = country;
         this.location = location;
@@ -30,14 +33,14 @@ public class ItemDto {
         this.description = description;
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
-        this.imageName = imageName;
+        this.imageNames = imageNames != null ? imageNames : new HashSet<>();
     }
 
     public ItemDto(Long id, String country,
             String location, String category,
             String name, String description,
             int retailPrice, int netPrice,
-            String imageName, String supplierName, 
+            Set<String> imageNames, String supplierName,
             String supplierContact, String supplierUrl) {
         this.id = id;
         this.country = country;
@@ -47,7 +50,7 @@ public class ItemDto {
         this.description = description;
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
-        this.imageName = imageName;
+        this.imageNames = imageNames != null ? imageNames : new HashSet<>();
         this.supplierName = supplierName;
         this.supplierContact = supplierContact;
         this.supplierUrl = supplierUrl;
@@ -117,12 +120,12 @@ public class ItemDto {
         this.netPrice = netPrice;
     }
 
-    public String getImageName() {
-        return imageName;
+    public Set<String> getImageNames() {
+        return imageNames;
     }
 
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
+    public void setImageNames(Set<String> imageNames) {
+        this.imageNames = imageNames != null ? imageNames : new HashSet<>();
     }
 
     public String getSupplierName() {
