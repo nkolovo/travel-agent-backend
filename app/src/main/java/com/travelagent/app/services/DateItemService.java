@@ -40,8 +40,10 @@ public class DateItemService {
         dto.setCountry(dateItem.getCountry());
         dto.setLocation(dateItem.getLocation());
         dto.setCategory(dateItem.getCategory());
+        dto.setSupplierCompany(dateItem.getSupplierCompany());
         dto.setSupplierName(dateItem.getSupplierName());
-        dto.setSupplierContact(dateItem.getSupplierContact());
+        dto.setSupplierNumber(dateItem.getSupplierNumber());
+        dto.setSupplierEmail(dateItem.getSupplierEmail());
         dto.setSupplierUrl(dateItem.getSupplierUrl());
         dto.setRetailPrice(dateItem.getRetailPrice());
         dto.setNetPrice(dateItem.getNetPrice());

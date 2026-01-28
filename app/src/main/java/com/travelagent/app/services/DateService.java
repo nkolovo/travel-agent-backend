@@ -81,16 +81,20 @@ public class DateService {
                         ? dateItemMap.get(item.getId()).getDescription()
                         : item.getDescription();
                 // Get supplier info from DateItem if available, otherwise from Item
-                String supplierName, supplierContact, supplierUrl;
+                String supplierCompany, supplierName, supplierNumber, supplierEmail, supplierUrl;
                 if (dateItemMap.containsKey(item.getId())) {
                     DateItem dateItemInfo = dateItemMap.get(item.getId());
+                    supplierCompany = dateItemInfo.getSupplierCompany();
                     supplierName = dateItemInfo.getSupplierName();
-                    supplierContact = dateItemInfo.getSupplierContact();
+                    supplierNumber = dateItemInfo.getSupplierNumber();
+                    supplierEmail = dateItemInfo.getSupplierEmail();
                     supplierUrl = dateItemInfo.getSupplierUrl();
                 } else {
                     Supplier itemSupplier = item.getSupplier();
+                    supplierCompany = itemSupplier != null ? itemSupplier.getCompany() : null;
                     supplierName = itemSupplier != null ? itemSupplier.getName() : null;
-                    supplierContact = itemSupplier != null ? itemSupplier.getContact() : null;
+                    supplierNumber = itemSupplier != null ? itemSupplier.getNumber() : null;
+                    supplierEmail = itemSupplier != null ? itemSupplier.getEmail() : null;
                     supplierUrl = itemSupplier != null ? itemSupplier.getUrl() : null;
                 }
                 int retailPrice = dateItemMap.containsKey(item.getId())
@@ -128,8 +132,10 @@ public class DateService {
                         item.getCategory(),
                         name,
                         description,
+                        supplierCompany,
                         supplierName,
-                        supplierContact,
+                        supplierNumber,
+                        supplierEmail,
                         supplierUrl,
                         retailPrice,
                         netPrice,
@@ -172,8 +178,10 @@ public class DateService {
             // Set supplier information from the item
             var supplier = item.getSupplier();
             if (supplier != null) {
+                dateItem.setSupplierCompany(supplier.getCompany());
                 dateItem.setSupplierName(supplier.getName());
-                dateItem.setSupplierContact(supplier.getContact());
+                dateItem.setSupplierNumber(supplier.getNumber());
+                dateItem.setSupplierEmail(supplier.getEmail());
                 dateItem.setSupplierUrl(supplier.getUrl());
             }
             date.getDateItems().add(dateItem);
@@ -282,8 +290,10 @@ public class DateService {
 
         // Set supplier information directly in DateItem (no relationship to Supplier
         // table)
+        dateItem.setSupplierCompany(dateItemDto.getSupplierCompany());
         dateItem.setSupplierName(dateItemDto.getSupplierName());
-        dateItem.setSupplierContact(dateItemDto.getSupplierContact());
+        dateItem.setSupplierNumber(dateItemDto.getSupplierNumber());
+        dateItem.setSupplierEmail(dateItemDto.getSupplierEmail());
         dateItem.setSupplierUrl(dateItemDto.getSupplierUrl());
 
         return dateItem;
@@ -298,6 +308,7 @@ public class DateService {
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
                 item.getCategory(), item.getName(), item.getDescription(), item.getRetailPrice(), item.getNetPrice(),
                 item.getImageNames(),
+                supplier != null ? supplier.getCompany() : null,
                 supplier != null ? supplier.getName() : null,
                 supplier != null ? supplier.getNumber() : null,
                 supplier != null ? supplier.getEmail() : null,

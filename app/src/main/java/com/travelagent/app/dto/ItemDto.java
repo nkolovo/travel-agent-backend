@@ -13,8 +13,10 @@ public class ItemDto {
     private int retailPrice;
     private int netPrice;
     private Set<String> imageNames = new HashSet<>();
+    private String supplierCompany;
     private String supplierName;
-    private String supplierContact;
+    private String supplierNumber;
+    private String supplierEmail;
     private String supplierUrl;
     private String notes;
 
@@ -55,8 +57,10 @@ public class ItemDto {
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
         this.imageNames = imageNames != null ? imageNames : new HashSet<>();
+        this.supplierCompany = supplierCompany;
         this.supplierName = supplierName;
-        this.supplierContact = supplierContact;
+        this.supplierNumber = supplierNumber;
+        this.supplierEmail = supplierEmail;
         this.supplierUrl = supplierUrl;
         this.notes = notes;
     }
@@ -133,6 +137,14 @@ public class ItemDto {
         this.imageNames = imageNames != null ? imageNames : new HashSet<>();
     }
 
+    public String getSupplierCompany() {
+        return supplierCompany;
+    }
+
+    public void setSupplierCompany(String supplierCompany) {
+        this.supplierCompany = supplierCompany;
+    }
+
     public String getSupplierName() {
         return supplierName;
     }
@@ -141,12 +153,20 @@ public class ItemDto {
         this.supplierName = supplierName;
     }
 
-    public String getSupplierContact() {
-        return supplierContact;
+    public String getSupplierNumber() {
+        return supplierNumber;
     }
 
-    public void setSupplierContact(String supplierContact) {
-        this.supplierContact = supplierContact;
+    public void setSupplierNumber(String supplierNumber) {
+        this.supplierNumber = supplierNumber;
+    }
+
+    public String getSupplierEmail() {
+        return supplierEmail;
+    }
+
+    public void setSupplierEmail(String supplierEmail) {
+        this.supplierEmail = supplierEmail;
     }
 
     public String getSupplierUrl() {
