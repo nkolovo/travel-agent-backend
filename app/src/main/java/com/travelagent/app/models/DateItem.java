@@ -2,7 +2,6 @@ package com.travelagent.app.models;
 
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -32,11 +31,17 @@ public class DateItem {
     @JsonIgnore
     private Item item;
 
+    @JsonProperty("supplier_company")
+    private String supplierCompany;
+
     @JsonProperty("supplier_name")
     private String supplierName;
 
-    @JsonProperty("supplier_contact")
-    private String supplierContact;
+    @JsonProperty("supplier_number")
+    private String supplierNumber;
+
+    @JsonProperty("supplier_email")
+    private String supplierEmail;
 
     @JsonProperty("supplier_url")
     private String supplierUrl;
@@ -170,6 +175,14 @@ public class DateItem {
         this.priority = priority;
     }
 
+    public String getSupplierCompany() {
+        return supplierCompany;
+    }
+
+    public void setSupplierCompany(String supplierCompany) {
+        this.supplierCompany = supplierCompany;
+    }
+
     public String getSupplierName() {
         return supplierName;
     }
@@ -178,12 +191,20 @@ public class DateItem {
         this.supplierName = supplierName;
     }
 
-    public String getSupplierContact() {
-        return supplierContact;
+    public String getSupplierNumber() {
+        return supplierNumber;
     }
 
-    public void setSupplierContact(String supplierContact) {
-        this.supplierContact = supplierContact;
+    public void setSupplierNumber(String supplierNumber) {
+        this.supplierNumber = supplierNumber;
+    }
+
+    public String getSupplierEmail() {
+        return supplierEmail;
+    }
+
+    public void setSupplierEmail(String supplierEmail) {
+        this.supplierEmail = supplierEmail;
     }
 
     public String getSupplierUrl() {

@@ -18,8 +18,10 @@ public class Supplier {
     private Long id;
 
     @Column(nullable = false)
+    private String company;
     private String name;
-    private String contact;
+    private String number;
+    private String email;
     private String url;
     private boolean deleted = false;
 
@@ -39,6 +41,14 @@ public class Supplier {
         this.id = id;
     }
 
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
     public String getName() {
         return name;
     }
@@ -47,12 +57,20 @@ public class Supplier {
         this.name = name;
     }
 
-    public String getContact() {
-        return contact;
+    public String getNumber() {
+        return number;
     }
 
-    public void setContact(String contact) {
-        this.contact = contact;
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getUrl() {

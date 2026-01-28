@@ -31,20 +31,20 @@ public class SupplierService {
         return sortedSupplierDtos;
     }
 
-    public List<String> getAllSupplierNames() {
+    public List<String> getAllSupplierCompanies() {
         List<Supplier> allSuppliers = supplierRepository.findAllActive();
         return allSuppliers.stream()
                 .sorted((supplier1, supplier2) -> supplier1.getName().compareTo(supplier2.getName()))
-                .map(Supplier::getName)
+                .map(Supplier::getCompany)
                 .toList();
     }
 
-    public SupplierDto getBySupplierName(String name) {
-        Optional<Supplier> supplierOpt = supplierRepository.findByName(name);
+    public SupplierDto getBySupplierCompany(String company) {
+        Optional<Supplier> supplierOpt = supplierRepository.findByCompany(company);
         if (supplierOpt.isPresent()) {
             return mapToSupplierDto(supplierOpt.get());
         } else {
-            throw new RuntimeException("Supplier not found with name: " + name);
+            throw new RuntimeException("Supplier not found with company: " + company);
         }
     }
 
@@ -56,18 +56,21 @@ public class SupplierService {
     public Supplier mapToSupplier(SupplierDto supplier) {
         Supplier supplierToSave = new Supplier();
         supplierToSave.setId(supplier.getId());
+        supplierToSave.setCompany(supplier.getCompany());
         supplierToSave.setName(supplier.getName());
-        supplierToSave.setContact(supplier.getContact());
+        supplierToSave.setNumber(supplier.getNumber());
+        supplierToSave.setEmail(supplier.getEmail());
         supplierToSave.setUrl(supplier.getUrl());
-
         return supplierToSave;
     }
 
     public SupplierDto mapToSupplierDto(Supplier supplier) {
         SupplierDto supplierDto = new SupplierDto();
         supplierDto.setId(supplier.getId());
+        supplierDto.setCompany(supplier.getCompany());
         supplierDto.setName(supplier.getName());
-        supplierDto.setContact(supplier.getContact());
+        supplierDto.setNumber(supplier.getNumber());
+        supplierDto.setEmail(supplier.getEmail());
         supplierDto.setUrl(supplier.getUrl());
         return supplierDto;
     }
