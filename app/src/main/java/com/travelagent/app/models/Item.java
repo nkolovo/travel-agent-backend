@@ -21,6 +21,7 @@ public class Item {
     private String description;
     private int retailPrice;
     private int netPrice;
+    private String notes;
 
     @ElementCollection
     @CollectionTable(name = "item_images", joinColumns = @JoinColumn(name = "item_id"))
@@ -103,6 +104,14 @@ public class Item {
 
     public void setNetPrice(int netPrice) {
         this.netPrice = netPrice;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Set<DateItem> getDateItems() {

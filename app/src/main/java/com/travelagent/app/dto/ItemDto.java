@@ -16,6 +16,7 @@ public class ItemDto {
     private String supplierName;
     private String supplierContact;
     private String supplierUrl;
+    private String notes;
 
     public ItemDto() {
     }
@@ -24,7 +25,7 @@ public class ItemDto {
             String location, String category,
             String name, String description,
             int retailPrice, int netPrice,
-            Set<String> imageNames) {
+            Set<String> imageNames, String notes) {
         this.id = id;
         this.country = country;
         this.location = location;
@@ -34,14 +35,17 @@ public class ItemDto {
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
         this.imageNames = imageNames != null ? imageNames : new HashSet<>();
+        this.notes = notes;
     }
 
     public ItemDto(Long id, String country,
             String location, String category,
             String name, String description,
             int retailPrice, int netPrice,
-            Set<String> imageNames, String supplierName,
-            String supplierContact, String supplierUrl) {
+            Set<String> imageNames, String supplierCompany,
+            String supplierName, String supplierNumber,
+            String supplierEmail, String supplierUrl,
+            String notes) {
         this.id = id;
         this.country = country;
         this.location = location;
@@ -54,6 +58,7 @@ public class ItemDto {
         this.supplierName = supplierName;
         this.supplierContact = supplierContact;
         this.supplierUrl = supplierUrl;
+        this.notes = notes;
     }
 
     public Long getId() {
@@ -150,5 +155,13 @@ public class ItemDto {
 
     public void setSupplierUrl(String supplierUrl) {
         this.supplierUrl = supplierUrl;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }

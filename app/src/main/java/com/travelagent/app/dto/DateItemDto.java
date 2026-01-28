@@ -17,6 +17,7 @@ public class DateItemDto {
     private String supplierUrl;
     private int retailPrice;
     private int netPrice;
+    private String notes;
     private Set<String> imageNames = new HashSet<>();
     private Set<String> imageUrls = new HashSet<>();
     private Short priority;
@@ -31,7 +32,8 @@ public class DateItemDto {
             String supplierName, String supplierContact,
             String supplierUrl, int retailPrice,
             int netPrice, Set<String> imageNames,
-            Set<String> imageUrls, Short priority) {
+            Set<String> imageUrls, Short priority,
+            String notes) {
         this.id = id;
         this.date = date;
         this.item = item;
@@ -48,6 +50,7 @@ public class DateItemDto {
         this.imageNames = imageNames != null ? imageNames : new HashSet<>();
         this.imageUrls = imageUrls != null ? imageUrls : new HashSet<>();
         this.priority = priority;
+        this.notes = notes;
     }
 
     // Getters and setters...
@@ -161,6 +164,14 @@ public class DateItemDto {
 
     public void setNetPrice(int netPrice) {
         this.netPrice = netPrice;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public void setImageName(String imageName) {
