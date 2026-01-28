@@ -22,14 +22,14 @@ public class SupplierController {
         return supplierService.getAllSuppliers();
     }
 
-    @GetMapping("/all-names")
-    public List<String> getAllSupplierNames() {
-        return supplierService.getAllSupplierNames();
+    @GetMapping("/all-companies")
+    public List<String> getAllSupplierCompanies() {
+        return supplierService.getAllSupplierCompanies();
     }
 
-    @GetMapping("/name/{name}")
-    public SupplierDto getSupplier(@PathVariable String name) {
-        return supplierService.getBySupplierName(name);
+    @GetMapping("/company/{company}")
+    public SupplierDto getSupplier(@PathVariable String company) {
+        return supplierService.getBySupplierCompany(company);
     }
 
     @PostMapping("/save")

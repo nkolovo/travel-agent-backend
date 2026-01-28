@@ -64,22 +64,26 @@ public class ItemService {
         itemToSave.setDeleted(false);
 
         // Add supplier handling
-        if (item.getSupplierName() != null && !item.getSupplierName().isEmpty()) {
-            // Check if supplier already exists by name
-            Optional<Supplier> existingSupplier = supplierRepository.findByName(item.getSupplierName());
+        if (item.getSupplierCompany() != null && !item.getSupplierCompany().isEmpty()) {
+            // Check if supplier already exists by company
+            Optional<Supplier> existingSupplier = supplierRepository.findByCompany(item.getSupplierCompany());
 
             Supplier supplier;
             if (existingSupplier.isPresent()) {
                 supplier = existingSupplier.get();
                 // Update supplier info if provided
-                supplier.setContact(item.getSupplierContact());
+                supplier.setName(item.getSupplierName());
+                supplier.setNumber(item.getSupplierNumber());
+                supplier.setEmail(item.getSupplierEmail());
                 supplier.setUrl(item.getSupplierUrl());
                 supplier = supplierRepository.save(supplier);
             } else {
                 // Create new supplier
                 supplier = new Supplier();
+                supplier.setCompany(item.getSupplierCompany());
                 supplier.setName(item.getSupplierName());
-                supplier.setContact(item.getSupplierContact());
+                supplier.setNumber(item.getSupplierNumber());
+                supplier.setEmail(item.getSupplierEmail());
                 supplier.setUrl(item.getSupplierUrl());
                 supplier = supplierRepository.save(supplier);
             }
@@ -172,8 +176,10 @@ public class ItemService {
                 item.getRetailPrice(),
                 item.getNetPrice(),
                 item.getImageNames(),
+                supplier != null ? supplier.getCompany() : null,
                 supplier != null ? supplier.getName() : null,
-                supplier != null ? supplier.getContact() : null,
+                supplier != null ? supplier.getNumber() : null,
+                supplier != null ? supplier.getEmail() : null,
                 supplier != null ? supplier.getUrl() : null);
     }
 
