@@ -114,6 +114,9 @@ public class DateService {
                                 .findFirst()
                                 .map(DateItem::getPriority)
                                 .orElse(null);
+                String notes = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getNotes()
+                        : item.getNotes();
                 Set<String> signedUrlsSet = null;
                 if (imageNames != null) {
                     signedUrlsSet = imageNames.stream()
@@ -138,7 +141,8 @@ public class DateService {
                         netPrice,
                         imageNames,
                         signedUrlsSet,
-                        priority));
+                        priority,
+                        notes));
             }
             // Sort the result by Priority
             if (result.size() >= 2)
@@ -169,6 +173,7 @@ public class DateService {
             dateItem.setNetPrice(item.getNetPrice());
             dateItem.setImageNames(item.getImageNames());
             dateItem.setPriority(priority);
+            dateItem.setNotes(item.getNotes());
 
             // Set supplier information from the item
             var supplier = item.getSupplier();
@@ -307,6 +312,7 @@ public class DateService {
                 supplier != null ? supplier.getName() : null,
                 supplier != null ? supplier.getNumber() : null,
                 supplier != null ? supplier.getEmail() : null,
-                supplier != null ? supplier.getUrl() : null);
+                supplier != null ? supplier.getUrl() : null,
+                item.getNotes());
     }
 }

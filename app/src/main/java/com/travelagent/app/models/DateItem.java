@@ -68,7 +68,10 @@ public class DateItem {
     @JsonProperty("net_price")
     private int netPrice;
 
-    @JsonProperty("image_name")
+    @JsonProperty("notes")
+    private String notes;
+
+    @JsonProperty("image_names")
     private Set<String> imageNames;
 
     @Column(name = "priority")
@@ -157,6 +160,14 @@ public class DateItem {
 
     public void setNetPrice(int netPrice) {
         this.netPrice = netPrice;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public Set<String> getImageNames() {

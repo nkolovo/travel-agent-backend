@@ -71,7 +71,8 @@ public class DateItemService {
                     item.getDescription(),
                     item.getRetailPrice(),
                     item.getNetPrice(),
-                    item.getImageNames());
+                    item.getImageNames(),
+                    item.getNotes());
             dto.setItem(itemDto);
         }
 

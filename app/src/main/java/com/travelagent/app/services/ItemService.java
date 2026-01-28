@@ -58,6 +58,7 @@ public class ItemService {
         itemToSave.setDescription(item.getDescription());
         itemToSave.setRetailPrice(item.getRetailPrice());
         itemToSave.setNetPrice(item.getNetPrice());
+        itemToSave.setNotes(item.getNotes());
         if (item.getImageNames() != null && !item.getImageNames().isEmpty()) {
             itemToSave.setImageNames(item.getImageNames());
         }
@@ -180,7 +181,8 @@ public class ItemService {
                 supplier != null ? supplier.getName() : null,
                 supplier != null ? supplier.getNumber() : null,
                 supplier != null ? supplier.getEmail() : null,
-                supplier != null ? supplier.getUrl() : null);
+                supplier != null ? supplier.getUrl() : null,
+                item.getNotes());
     }
 
 }
