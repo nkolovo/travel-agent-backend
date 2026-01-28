@@ -58,7 +58,9 @@ public class ItemService {
         itemToSave.setDescription(item.getDescription());
         itemToSave.setRetailPrice(item.getRetailPrice());
         itemToSave.setNetPrice(item.getNetPrice());
-        itemToSave.setImageName(item.getImageName().length() > 0 ? item.getImageName() : null);
+        if (item.getImageNames() != null && !item.getImageNames().isEmpty()) {
+            itemToSave.setImageNames(item.getImageNames());
+        }
         itemToSave.setDeleted(false);
 
         // Add supplier handling
@@ -112,11 +114,11 @@ public class ItemService {
     }
 
     public ItemDto getItemById(Long id) {
-        Optional<ItemDto> itemDtoOpt = itemRepository.findByIdDto(id);
-        if (itemDtoOpt.isPresent()) {
-            return itemDtoOpt.get();
+        Optional<Item> itemOpt = itemRepository.findActiveById(id);
+        if (itemOpt.isPresent()) {
+            return convertToDto(itemOpt.get());
         } else {
-            throw new RuntimeException("Could not find itinerary with ID " + id);
+            throw new RuntimeException("Could not find item with ID " + id);
         }
     }
 
@@ -169,7 +171,7 @@ public class ItemService {
                 item.getDescription(),
                 item.getRetailPrice(),
                 item.getNetPrice(),
-                item.getImageName(),
+                item.getImageNames(),
                 supplier != null ? supplier.getName() : null,
                 supplier != null ? supplier.getContact() : null,
                 supplier != null ? supplier.getUrl() : null);

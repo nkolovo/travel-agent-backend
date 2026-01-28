@@ -99,9 +99,9 @@ public class DateService {
                 int netPrice = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getNetPrice()
                         : item.getNetPrice();
-                String imageName = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getImageName()
-                        : item.getImageName();
+                Set<String> imageNames = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getImageNames()
+                        : item.getImageNames();
                 Short priority = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getPriority()
                         : dateOpt.get().getDateItems()
@@ -110,9 +110,12 @@ public class DateService {
                                 .findFirst()
                                 .map(DateItem::getPriority)
                                 .orElse(null);
-                String signedUrl = null;
-                if (imageName != null)
-                    signedUrl = signedUrlCache.computeIfAbsent(imageName, gcsImageService::getSignedUrl);
+                Set<String> signedUrlsSet = null;
+                if (imageNames != null) {
+                    signedUrlsSet = imageNames.stream()
+                            .map(imageName -> signedUrlCache.computeIfAbsent(imageName, gcsImageService::getSignedUrl))
+                            .collect(Collectors.toSet());
+                }
                 result.add(new DateItemDto(
                         item.getId(),
                         convertToDto(dateOpt.get()),
@@ -127,8 +130,8 @@ public class DateService {
                         supplierUrl,
                         retailPrice,
                         netPrice,
-                        imageName,
-                        signedUrl,
+                        imageNames,
+                        signedUrlsSet,
                         priority));
             }
             // Sort the result by Priority
@@ -158,7 +161,7 @@ public class DateService {
             dateItem.setDescription(item.getDescription());
             dateItem.setRetailPrice(item.getRetailPrice());
             dateItem.setNetPrice(item.getNetPrice());
-            dateItem.setImageName(item.getImageName());
+            dateItem.setImageNames(item.getImageNames());
             dateItem.setPriority(priority);
 
             // Set supplier information from the item
@@ -269,7 +272,7 @@ public class DateService {
         dateItem.setDescription(dateItemDto.getDescription());
         dateItem.setRetailPrice(dateItemDto.getRetailPrice());
         dateItem.setNetPrice(dateItemDto.getNetPrice());
-        dateItem.setImageName(dateItemDto.getImageName());
+        dateItem.setImageNames(dateItemDto.getImageNames());
         dateItem.setPriority(dateItemDto.getPriority());
 
         // Set supplier information directly in DateItem (no relationship to Supplier
@@ -289,7 +292,7 @@ public class DateService {
         var supplier = item.getSupplier();
         return new ItemDto(item.getId(), item.getCountry(), item.getLocation(),
                 item.getCategory(), item.getName(), item.getDescription(), item.getRetailPrice(), item.getNetPrice(),
-                item.getImageName(),
+                item.getImageNames(),
                 supplier != null ? supplier.getName() : null,
                 supplier != null ? supplier.getContact() : null,
                 supplier != null ? supplier.getUrl() : null);

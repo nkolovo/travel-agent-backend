@@ -1,5 +1,8 @@
 package com.travelagent.app.dto;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class DateItemDto {
     private Long id;
     private DateDto date;
@@ -14,8 +17,8 @@ public class DateItemDto {
     private String supplierUrl;
     private int retailPrice;
     private int netPrice;
-    private String imageName;
-    private String imageUrl;
+    private Set<String> imageNames = new HashSet<>();
+    private Set<String> imageUrls = new HashSet<>();
     private Short priority;
 
     public DateItemDto() {
@@ -27,8 +30,8 @@ public class DateItemDto {
             String name, String description,
             String supplierName, String supplierContact,
             String supplierUrl, int retailPrice,
-            int netPrice, String imageName,
-            String imageUrl, Short priority) {
+            int netPrice, Set<String> imageNames,
+            Set<String> imageUrls, Short priority) {
         this.id = id;
         this.date = date;
         this.item = item;
@@ -42,8 +45,8 @@ public class DateItemDto {
         this.supplierUrl = supplierUrl;
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
-        this.imageName = imageName;
-        this.imageUrl = imageUrl;
+        this.imageNames = imageNames != null ? imageNames : new HashSet<>();
+        this.imageUrls = imageUrls != null ? imageUrls : new HashSet<>();
         this.priority = priority;
     }
 
@@ -96,8 +99,12 @@ public class DateItemDto {
         return description;
     }
 
-    public String getImageName() {
-        return imageName;
+    public Set<String> getImageNames() {
+        return imageNames;
+    }
+
+    public void setImageNames(Set<String> imageNames) {
+        this.imageNames = imageNames != null ? imageNames : new HashSet<>();
     }
 
     public void setLocation(String location) {
@@ -157,15 +164,18 @@ public class DateItemDto {
     }
 
     public void setImageName(String imageName) {
-        this.imageName = imageName;
+        this.imageNames.clear();
+        if (imageName != null && !imageName.trim().isEmpty()) {
+            this.imageNames.add(imageName);
+        }
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public Set<String> getImageUrls() {
+        return imageUrls;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageUrls(Set<String> imageUrls) {
+        this.imageUrls = imageUrls != null ? imageUrls : new HashSet<>();
     }
 
     public Short getPriority() {
