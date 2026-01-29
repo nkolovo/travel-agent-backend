@@ -14,6 +14,7 @@ import com.travelagent.app.dto.ItineraryDto;
 
 import com.travelagent.app.services.ClientService;
 import com.travelagent.app.services.GcsImageService;
+import com.travelagent.app.services.GcsPdfService;
 import com.travelagent.app.services.ItineraryService;
 import com.travelagent.app.services.UserService;
 import com.travelagent.app.services.DateItemService;
@@ -48,6 +49,8 @@ public class ItineraryController {
 
     @Autowired
     private GcsImageService gcsImageService;
+    @Autowired
+    private GcsPdfService gcsPdfService;
     @Autowired
     private SpringTemplateEngine templateEngine;
 
@@ -232,6 +235,20 @@ public class ItineraryController {
                         }
                     }
                 }
+                
+                // Generate signed URL for PDF if it exists
+                if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
+                    try {
+                        String pdfSignedUrl = gcsPdfService.getSignedUrl(dto.getPdfName());
+                        dto.setPdfUrl(pdfSignedUrl);
+                        System.out.println("Generated signed URL for PDF: " + dto.getPdfName());
+                    } catch (Exception e) {
+                        System.err.println("Warning: Failed to generate signed URL for PDF: " + dto.getPdfName() + " - "
+                                + e.getMessage());
+                        // Continue processing instead of failing completely
+                    }
+                }
+                
                 allDateItemDtos.add(dto);
             }
         }
@@ -256,14 +273,23 @@ public class ItineraryController {
 
         // Clean up HTML for XML parsing - more comprehensive escaping
         html = html.replace("&nbsp;", "&#160;");
-        html = html.replaceAll("&(?![a-zA-Z]{2,6};|#[0-9]{2,5};)", "&amp;");
-        html = html.replaceAll("<(?![/a-zA-Z!?])", "&lt;");
 
-        // Ensure proper XML structure by adding DOCTYPE and ensuring well-formed HTML
-        if (!html.trim().startsWith("<!DOCTYPE")) {
-            html = "<!DOCTYPE html>" + html;
+        // Targeted unescaping only for span tags with background-color styles
+        html = html.replaceAll("&lt;span style=&quot;background-color: ([^&]+?)&quot;&gt;", "<span style=\"background-color: $1\">");
+        html = html.replaceAll("&lt;/span&gt;", "</span>");
+
+        // Normalize line breaks
+        html = html.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
+
+        // Fix DOCTYPE case - OpenHTMLToPDF requires uppercase DOCTYPE
+        html = html.replace("<!doctype html>", "<!DOCTYPE html>");
+        
+        // Ensure proper XML structure - remove any BOM or invisible characters
+        html = html.trim();
+        if (html.startsWith("\uFEFF")) {
+            html = html.substring(1); // Remove BOM
         }
-
+        
         // Convert HTML to PDF
         ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
         PdfRendererBuilder builder = new PdfRendererBuilder();

@@ -21,6 +21,7 @@ public class DateItemDto {
     private int netPrice;
     private String notes;
     private String pdfName;
+    private String pdfUrl;
     private Set<String> imageNames = new HashSet<>();
     private Set<String> imageUrls = new HashSet<>();
     private Short priority;
@@ -35,7 +36,7 @@ public class DateItemDto {
             String supplierCompany, String supplierName,
             String supplierNumber, String supplierEmail,
             String supplierUrl, int retailPrice,
-            int netPrice, String pdfName,
+            int netPrice, String pdfName, String pdfUrl,
             Set<String> imageNames, Set<String> imageUrls,
             Short priority, String notes) {
         this.id = id;
@@ -54,6 +55,7 @@ public class DateItemDto {
         this.retailPrice = retailPrice;
         this.netPrice = netPrice;
         this.pdfName = pdfName;
+        this.pdfUrl = pdfUrl;
         this.imageNames = imageNames != null ? imageNames : new HashSet<>();
         this.imageUrls = imageUrls != null ? imageUrls : new HashSet<>();
         this.priority = priority;
@@ -115,6 +117,14 @@ public class DateItemDto {
 
     public void setPdfName(String pdfName) {
         this.pdfName = pdfName;
+    }
+
+    public String getPdfUrl() {
+        return pdfUrl;
+    }
+
+    public void setPdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
     }
 
     public Set<String> getImageNames() {

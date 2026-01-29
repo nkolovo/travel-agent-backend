@@ -38,6 +38,8 @@ public class DateService {
 
     @Autowired
     private GcsImageService gcsImageService;
+    @Autowired
+    private GcsPdfService gcsPdfService;
 
     public DateService(ItineraryRepository itineraryRepository, DateRepository dateRepository,
             ItemRepository itemRepository,
@@ -120,6 +122,10 @@ public class DateService {
                 String pdfName = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getPdfName()
                         : null;
+                String pdfUrl = null;
+                if (pdfName != null) {
+                    pdfUrl = signedUrlCache.computeIfAbsent(pdfName, gcsPdfService::getSignedUrl);
+                }
                 Set<String> signedUrlsSet = null;
                 if (imageNames != null) {
                     signedUrlsSet = imageNames.stream()
@@ -143,6 +149,7 @@ public class DateService {
                         retailPrice,
                         netPrice,
                         pdfName,
+                        pdfUrl,
                         imageNames,
                         signedUrlsSet,
                         priority,
