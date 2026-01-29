@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
@@ -155,6 +155,25 @@
         border-radius: 10px;
       }
 
+      .pdf-link-container {
+        margin: 8px 0;
+      }
+
+      .pdf-link {
+        display: inline-block;
+        padding: 8px 12px;
+        background-color: #f3f4f6;
+        color: #1f2937;
+        text-decoration: none;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        font-weight: 500;
+      }
+
+      .pdf-link:hover {
+        background-color: #e5e7eb;
+      }
+
       .dateitem .description {
         margin-top: 6px;
       }
@@ -251,14 +270,23 @@
         th:if="${dateItem.date.id == date.id}"
         class="dateitem"
       >
-        <h3 th:text="${dateItem.name}">DateItem Title</h3>
-        <div th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}">
+        <h3 th:utext="${dateItem.name}">DateItem Title</h3>
+        <div
+          th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}"
+        >
           <img
             th:each="imageUrl : ${dateItem.imageUrls}"
             th:src="${imageUrl}"
             class="dateitem-image"
             alt="DateItem Image"
           />
+        </div>
+        <div th:if="${dateItem.pdfUrl != null and !dateItem.pdfUrl.isEmpty()}">
+          <div class="pdf-link-container">
+            <a th:href="${dateItem.pdfUrl}" target="_blank" class="pdf-link">
+              📄 View PDF Document
+            </a>
+          </div>
         </div>
         <div class="description" th:utext="${dateItem.description}">
           DateItem Description
