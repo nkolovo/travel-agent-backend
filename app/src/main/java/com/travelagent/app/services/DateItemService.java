@@ -9,18 +9,24 @@ import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItemRepository;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class DateItemService {
     private final DateItemRepository dateItemRepository;
+    private final GcsPdfService gcsPdfService;
 
     public DateItemService(DateItemRepository dateItemRepository,
             DateRepository dateRepository,
-            ItemRepository itemRepository) {
+            ItemRepository itemRepository,
+            GcsPdfService gcsPdfService) {
         this.dateItemRepository = dateItemRepository;
+        this.gcsPdfService = gcsPdfService;
     }
 
     public Optional<DateItem> getDateItem(Long dateId, Long itemId) {
@@ -30,6 +36,35 @@ public class DateItemService {
     public List<DateItemDto> getDateItemsByDate(Long dateId) {
         List<DateItem> dateItems = dateItemRepository.findByDateId(dateId);
         return dateItems.stream().map(this::convertToDto).toList();
+    }
+
+    public String uploadPdfForDateItem(MultipartFile file) throws IOException {
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new IllegalArgumentException("File must have a valid filename");
+        }
+
+        // Check if the PDF already exists in GCS
+        boolean exists = gcsPdfService.doesPdfExist(originalFilename);
+        System.out.println("PDF " + originalFilename + " exists in GCS: " + exists);
+
+        if (exists) {
+            System.out.println("Skipping existing PDF: " + originalFilename);
+            return "PDF already exists: " + originalFilename;
+        } else {
+            System.out.println("Uploading new PDF: " + originalFilename);
+            String uploadedFileName = gcsPdfService.uploadPdf(file, originalFilename);
+            System.out.println("Successfully uploaded: " + uploadedFileName);
+            return "PDF uploaded successfully: " + uploadedFileName;
+        }
+    }
+
+    public String getPdfUrl(String pdfName) {
+        if (pdfName == null || pdfName.trim().isEmpty()) {
+            throw new IllegalArgumentException("PDF name must be provided");
+        }
+
+        return gcsPdfService.getSignedUrl(pdfName);
     }
 
     private DateItemDto convertToDto(DateItem dateItem) {
@@ -49,6 +84,7 @@ public class DateItemService {
         dto.setNetPrice(dateItem.getNetPrice());
         dto.setImageNames(dateItem.getImageNames());
         dto.setPriority(dateItem.getPriority());
+        dto.setPdfName(dateItem.getPdfName());
 
         // Convert related entities to DTOs
         if (dateItem.getDate() != null) {

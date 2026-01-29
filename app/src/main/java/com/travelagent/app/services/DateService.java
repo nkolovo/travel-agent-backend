@@ -117,6 +117,9 @@ public class DateService {
                 String notes = dateItemMap.containsKey(item.getId())
                         ? dateItemMap.get(item.getId()).getNotes()
                         : item.getNotes();
+                String pdfName = dateItemMap.containsKey(item.getId())
+                        ? dateItemMap.get(item.getId()).getPdfName()
+                        : null;
                 Set<String> signedUrlsSet = null;
                 if (imageNames != null) {
                     signedUrlsSet = imageNames.stream()
@@ -139,6 +142,7 @@ public class DateService {
                         supplierUrl,
                         retailPrice,
                         netPrice,
+                        pdfName,
                         imageNames,
                         signedUrlsSet,
                         priority,
@@ -285,6 +289,8 @@ public class DateService {
         dateItem.setDescription(dateItemDto.getDescription());
         dateItem.setRetailPrice(dateItemDto.getRetailPrice());
         dateItem.setNetPrice(dateItemDto.getNetPrice());
+        dateItem.setNotes(dateItemDto.getNotes());
+        dateItem.setPdfName(dateItemDto.getPdfName());
         dateItem.setImageNames(dateItemDto.getImageNames());
         dateItem.setPriority(dateItemDto.getPriority());
 

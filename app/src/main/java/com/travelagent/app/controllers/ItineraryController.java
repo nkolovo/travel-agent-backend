@@ -218,12 +218,6 @@ public class ItineraryController {
         for (DateDto date : dates) {
             List<DateItemDto> dateItems = dateItemService.getDateItemsByDate(date.getId());
             for (DateItemDto dto : dateItems) {
-                // Debug logging for PDF generation
-                System.out.println("=== PDF DEBUG ===");
-                System.out.println("DateItem ID: " + dto.getId() + ", Name: " + dto.getName());
-                System.out.println("ImageNames: " + dto.getImageNames());
-                System.out.println("ImageNames size: " + (dto.getImageNames() != null ? dto.getImageNames().size() : 0));
-                
                 if (dto.getImageNames() != null && !dto.getImageNames().isEmpty()) {
                     // Generate signed URLs for all images
                     for (String imageName : dto.getImageNames()) {
@@ -232,14 +226,12 @@ public class ItineraryController {
                             dto.getImageUrls().add(signedUrl);
                             System.out.println("Generated signed URL for: " + imageName);
                         } catch (Exception e) {
-                            System.err.println("Warning: Failed to generate signed URL for image: " + imageName + " - " + e.getMessage());
+                            System.err.println("Warning: Failed to generate signed URL for image: " + imageName + " - "
+                                    + e.getMessage());
                             // Continue processing other images instead of failing completely
                         }
                     }
                 }
-                System.out.println("Final ImageUrls size: " + dto.getImageUrls().size());
-                System.out.println("==================");
-                
                 allDateItemDtos.add(dto);
             }
         }
@@ -261,12 +253,12 @@ public class ItineraryController {
         context.setVariable("dateItems", allDateItemDtos);
         context.setVariable("edgeFadeUrl", edgeFadeUrl);
         String html = templateEngine.process("itinerary-pdf", context);
-        
+
         // Clean up HTML for XML parsing - more comprehensive escaping
         html = html.replace("&nbsp;", "&#160;");
         html = html.replaceAll("&(?![a-zA-Z]{2,6};|#[0-9]{2,5};)", "&amp;");
         html = html.replaceAll("<(?![/a-zA-Z!?])", "&lt;");
-        
+
         // Ensure proper XML structure by adding DOCTYPE and ensuring well-formed HTML
         if (!html.trim().startsWith("<!DOCTYPE")) {
             html = "<!DOCTYPE html>" + html;
@@ -280,7 +272,6 @@ public class ItineraryController {
         try {
             builder.run();
         } catch (Exception e) {
-            // Log the generated HTML for debugging
             System.err.println("Failed to generate PDF. HTML content length: " + html.length());
             System.err.println("HTML starts with: " + html.substring(0, Math.min(200, html.length())));
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

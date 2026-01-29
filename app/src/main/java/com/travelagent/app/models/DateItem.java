@@ -71,6 +71,9 @@ public class DateItem {
     @JsonProperty("notes")
     private String notes;
 
+    @JsonProperty("pdf_name")
+    private String pdfName;
+
     @JsonProperty("image_names")
     private Set<String> imageNames;
 
@@ -168,6 +171,14 @@ public class DateItem {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getPdfName() {
+        return pdfName;
+    }
+
+    public void setPdfName(String pdfName) {
+        this.pdfName = pdfName;
     }
 
     public Set<String> getImageNames() {
