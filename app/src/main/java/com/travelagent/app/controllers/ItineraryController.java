@@ -2,10 +2,8 @@ package com.travelagent.app.controllers;
 
 import com.travelagent.app.models.Client;
 import com.travelagent.app.models.Date;
-import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.User;
-import com.travelagent.app.models.Supplier;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import com.travelagent.app.dto.DateDto;

@@ -1,7 +1,6 @@
 package com.travelagent.app.repositories;
 
 import com.travelagent.app.models.Item;
-import com.travelagent.app.dto.ItemDto;
 
 import java.util.List;
 import java.util.Optional;
