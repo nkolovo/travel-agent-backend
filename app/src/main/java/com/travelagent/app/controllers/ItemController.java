@@ -112,9 +112,7 @@ public class ItemController {
                     System.out.println("Skipping existing file: " + fileNames[i]);
                 }
             }
-
-            System.out.println("Total files to upload: " + uploadCount);
-
+            
             // Upload new files to GCS if any
             Set<String> uploadedFiles = new HashSet<>();
             if (uploadCount > 0) {
