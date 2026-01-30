@@ -149,10 +149,13 @@
       }
       .dateitem-image {
         width: 240px;
+        height: 160px;
         max-width: 100%;
-        height: auto;
-        margin: 6px 0 10px 0;
+        margin: 6px 12px 10px 0;
         border-radius: 10px;
+        object-fit: cover;
+        object-position: center;
+        display: inline-block;
       }
 
       .pdf-link-container {
@@ -178,9 +181,34 @@
         margin-top: 6px;
       }
 
+      .disclaimer-header {
+        display: none;
+      }
+
       @media print {
+        .disclaimer-header {
+          display: block;
+          position: fixed;
+          top: -5px;
+          left: 0;
+          right: 0;
+          background: white;
+          font-size: 9px;
+          font-style: italic;
+          color: #374151;
+          text-align: center;
+          padding: 4px 15px 6px 15px;
+          border-bottom: 1px solid #e5e7eb;
+          z-index: 1000;
+          line-height: 1.2;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          margin: 0;
+        }
+
         body {
-          padding: 0 10mm;
+          padding-top: 35px;
+          padding-left: 20px;
+          padding-right: 20px;
         }
         .info-row {
           border-color: #d1d5db;
@@ -197,6 +225,13 @@
     </style>
   </head>
   <body>
+    <!-- Disclaimer Header -->
+    <div class="disclaimer-header">
+      Suggested hotels and room types available at time of presentation. Subject
+      to change until trip package is reserved. Cost of local flight and ferry
+      tickets subject to change until package is reserved.
+    </div>
+
     <!-- Company Logo -->
     <img
       th:if="${companyLogoUrl != null}"
