@@ -50,12 +50,11 @@ public class SupplierService {
 
     public Long saveSupplier(SupplierDto supplier) {
         Supplier supplierToSave = mapToSupplier(supplier);
-        // if supplier company already exists, don't save and return a warning
+        // If supplier company already exists, update it
         Optional<Supplier> existingSupplier = supplierRepository.findByCompany(supplier.getCompany());
         if (existingSupplier.isPresent()) {
-            throw new RuntimeException("Supplier with company " + supplier.getCompany() + " already exists.");
+            supplierToSave.setId(existingSupplier.get().getId());
         }
-
         return supplierRepository.save(supplierToSave).getId();
     }
 
