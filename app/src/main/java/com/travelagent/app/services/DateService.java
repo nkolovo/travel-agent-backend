@@ -2,7 +2,6 @@ package com.travelagent.app.services;
 
 import com.travelagent.app.models.Item;
 import com.travelagent.app.models.Itinerary;
-import com.travelagent.app.models.Supplier;
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItemDto;

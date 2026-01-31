@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface DateItemRepository extends JpaRepository<DateItem, Long> {
     @Query("SELECT di FROM DateItem di WHERE di.date.id = :dateId AND di.item.id = :itemId")
