@@ -28,7 +28,7 @@ public class DateItemService {
         this.gcsPdfService = gcsPdfService;
     }
 
-    public Optional<DateItem> getDateItem(Long dateId, Long itemId) {
+    public List<DateItem> getDateItems(Long dateId, Long itemId) {
         return dateItemRepository.findByDateIdAndItemId(dateId, itemId);
     }
 
@@ -68,7 +68,7 @@ public class DateItemService {
 
     private DateItemDto convertToDto(DateItem dateItem) {
         DateItemDto dto = new DateItemDto();
-        dto.setId(dateItem.getId().getItemId());
+        dto.setId(dateItem.getId());
         dto.setName(dateItem.getName());
         dto.setDescription(dateItem.getDescription());
         dto.setCountry(dateItem.getCountry());

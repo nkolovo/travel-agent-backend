@@ -9,7 +9,6 @@ import com.travelagent.app.dto.ItemDto;
 
 import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Date;
-import com.travelagent.app.models.DateItemId;
 
 import com.travelagent.app.repositories.ItineraryRepository;
 import com.travelagent.app.repositories.DateItemRepository;
@@ -27,6 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.management.RuntimeErrorException;
 
 @Service
 public class DateService {
@@ -61,110 +62,58 @@ public class DateService {
     public List<DateItemDto> getItemsForDate(Long dateId) {
         Optional<Date> dateOpt = dateRepository.findById(dateId);
         if (dateOpt.isPresent()) {
-            Set<Item> itemsSet = dateOpt.get().getDateItems()
-                    .stream()
-                    .map(DateItem::getItem)
-                    .collect(Collectors.toSet());
             List<DateItem> dateItems = dateItemRepository.findByDateId(dateId);
-
-            // Map itemId to DateItem for quick lookup
-            Map<Long, DateItem> dateItemMap = new HashMap<>();
-            for (DateItem ci : dateItems) {
-                dateItemMap.put(ci.getItem().getId(), ci);
-            }
-
             Map<String, String> signedUrlCache = new HashMap<>();
+
             List<DateItemDto> result = new ArrayList<>();
-            for (Item item : itemsSet) {
-                String name = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getName()
-                        : item.getName();
-                String description = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getDescription()
-                        : item.getDescription();
-                // Get supplier info from DateItem if available, otherwise from Item
-                String supplierCompany, supplierName, supplierNumber, supplierEmail, supplierUrl;
-                if (dateItemMap.containsKey(item.getId())) {
-                    DateItem dateItemInfo = dateItemMap.get(item.getId());
-                    supplierCompany = dateItemInfo.getSupplierCompany();
-                    supplierName = dateItemInfo.getSupplierName();
-                    supplierNumber = dateItemInfo.getSupplierNumber();
-                    supplierEmail = dateItemInfo.getSupplierEmail();
-                    supplierUrl = dateItemInfo.getSupplierUrl();
-                } else {
-                    Supplier itemSupplier = item.getSupplier();
-                    supplierCompany = itemSupplier != null ? itemSupplier.getCompany() : null;
-                    supplierName = itemSupplier != null ? itemSupplier.getName() : null;
-                    supplierNumber = itemSupplier != null ? itemSupplier.getNumber() : null;
-                    supplierEmail = itemSupplier != null ? itemSupplier.getEmail() : null;
-                    supplierUrl = itemSupplier != null ? itemSupplier.getUrl() : null;
-                }
-                int retailPrice = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getRetailPrice()
-                        : item.getRetailPrice();
-                int netPrice = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getNetPrice()
-                        : item.getNetPrice();
-                Set<String> imageNames = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getImageNames()
-                        : item.getImageNames();
-                Short priority = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getPriority()
-                        : dateOpt.get().getDateItems()
-                                .stream()
-                                .filter(di -> di.getItem().getId().equals(item.getId()))
-                                .findFirst()
-                                .map(DateItem::getPriority)
-                                .orElse(null);
-                String notes = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getNotes()
-                        : item.getNotes();
-                String pdfName = dateItemMap.containsKey(item.getId())
-                        ? dateItemMap.get(item.getId()).getPdfName()
-                        : null;
+            for (DateItem dateItem : dateItems) {
                 String pdfUrl = null;
-                if (pdfName != null) {
-                    pdfUrl = signedUrlCache.computeIfAbsent(pdfName, gcsPdfService::getSignedUrl);
+                if (dateItem.getPdfName() != null) {
+                    pdfUrl = signedUrlCache.computeIfAbsent(dateItem.getPdfName(), gcsPdfService::getSignedUrl);
                 }
+
                 Set<String> signedUrlsSet = null;
-                if (imageNames != null) {
-                    signedUrlsSet = imageNames.stream()
+                if (dateItem.getImageNames() != null) {
+                    signedUrlsSet = dateItem.getImageNames().stream()
                             .map(imageName -> signedUrlCache.computeIfAbsent(imageName, gcsImageService::getSignedUrl))
                             .collect(Collectors.toSet());
                 }
+
                 result.add(new DateItemDto(
-                        item.getId(),
+                        dateItem.getId(), // Use DateItem's own ID, not Item ID
                         convertToDto(dateOpt.get()),
-                        convertToDto(item),
-                        item.getCountry(),
-                        item.getLocation(),
-                        item.getCategory(),
-                        name,
-                        description,
-                        supplierCompany,
-                        supplierName,
-                        supplierNumber,
-                        supplierEmail,
-                        supplierUrl,
-                        retailPrice,
-                        netPrice,
-                        pdfName,
+                        convertToDto(dateItem.getItem()),
+                        dateItem.getCountry(),
+                        dateItem.getLocation(),
+                        dateItem.getCategory(),
+                        dateItem.getName(),
+                        dateItem.getDescription(),
+                        dateItem.getSupplierCompany(),
+                        dateItem.getSupplierName(),
+                        dateItem.getSupplierNumber(),
+                        dateItem.getSupplierEmail(),
+                        dateItem.getSupplierUrl(),
+                        dateItem.getRetailPrice(),
+                        dateItem.getNetPrice(),
+                        dateItem.getPdfName(),
                         pdfUrl,
-                        imageNames,
+                        dateItem.getImageNames(),
                         signedUrlsSet,
-                        priority,
-                        notes));
+                        dateItem.getPriority(),
+                        dateItem.getNotes()));
             }
+
             // Sort the result by Priority
-            if (result.size() >= 2)
+            if (result.size() >= 2) {
                 result.sort(Comparator.comparing(DateItemDto::getPriority,
                         Comparator.nullsLast(Short::compareTo)));
+            }
             return result;
         }
         throw new RuntimeException("Date not found!");
     }
 
-    public Date addItemToDate(Long dateId, Long itemId, Short priority) {
+    public DateItemDto addItemToDate(Long dateId, Long itemId, Short priority) {
         Optional<Date> dateOpt = dateRepository.findById(dateId);
         Optional<Item> itemOpt = itemRepository.findActiveById(itemId);
 
@@ -172,7 +121,6 @@ public class DateService {
             Date date = dateOpt.get();
             Item item = itemOpt.get();
             DateItem dateItem = new DateItem();
-            dateItem.setId(new DateItemId(date.getId(), item.getId()));
             dateItem.setDate(date);
             dateItem.setItem(item);
             dateItem.setCountry(item.getCountry());
@@ -204,91 +152,121 @@ public class DateService {
                 itinerary.setNetPrice(itinerary.getNetPrice() + item.getNetPrice());
                 itineraryRepository.save(itinerary);
             }
-            // Save the DateItem using a DateItemRepository
+
+            dateItemRepository.save(dateItem);
             dateRepository.save(date);
 
-            return date; // or return dateItem if you prefer
+            return convertToDto(dateItem);
+
         }
         throw new RuntimeException("Date or Item not found!");
     }
 
-    public void saveDateItemToDate(Long dateId, Long itemId, DateItemDto dateItemDto) {
-        Date date = dateRepository.findById(dateId)
-                .orElseThrow(() -> new RuntimeException("Could not find date with ID " + dateId));
-        Item item = itemRepository.findActiveById(itemId)
-                .orElseThrow(() -> new RuntimeException("Could not find item with ID " + itemId));
-        DateItem dateItem = new DateItem();
-        // If the DateItem already exists, retrieve it,
-        // get its original priority, and check if prices have changed
-        Optional<DateItem> originalDateItem = dateItemRepository.findByDateIdAndItemId(dateId, itemId);
-        if (originalDateItem.isPresent()) {
-            DateItem existingDateItem = originalDateItem.get();
-            int retailPriceDiff = dateItemDto.getRetailPrice() - existingDateItem.getRetailPrice();
-            int netPriceDiff = dateItemDto.getNetPrice() - existingDateItem.getNetPrice();
-            if (retailPriceDiff != 0 || netPriceDiff != 0) {
-                Itinerary itinerary = date.getItinerary();
-                itinerary.setTripPrice(itinerary.getTripPrice() + retailPriceDiff);
-                itinerary.setNetPrice(itinerary.getNetPrice() + netPriceDiff);
-                itineraryRepository.save(itinerary);
-            }
-            final Short originalPriority = existingDateItem.getPriority();
-            if (originalPriority != null) {
-                List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(dateId).stream()
-                        .filter(di -> di.getPriority() != null && dateItemDto.getPriority() != null
-                                && di.getPriority() >= dateItemDto.getPriority()
-                                && di.getPriority() < originalPriority
-                                && !di.getItem().getId().equals(itemId))
-                        .collect(Collectors.toList());
+    public void saveDateItemToDate(DateItemDto dateItemDto) {
+        Date date = dateRepository.findById(dateItemDto.getDate().getId())
+                .orElseThrow(
+                        () -> new RuntimeException("Could not find date with ID " + dateItemDto.getDate().getId()));
 
-                for (DateItem di : prioritiesToUpdate) {
-                    di.setPriority((short) (di.getPriority() + 1));
+        DateItem dateItem;
+
+        // Update existing DateItem (DTO has an ID)
+        if (dateItemDto.getId() != null) {
+            Optional<DateItem> existingDateItemOpt = dateItemRepository.findById(dateItemDto.getId());
+            if (existingDateItemOpt.isPresent()) {
+                DateItem existingDateItem = existingDateItemOpt.get();
+                int retailPriceDiff = dateItemDto.getRetailPrice() - existingDateItem.getRetailPrice();
+                int netPriceDiff = dateItemDto.getNetPrice() - existingDateItem.getNetPrice();
+
+                // Update itinerary prices based on the difference
+                if (retailPriceDiff != 0 || netPriceDiff != 0) {
+                    Itinerary itinerary = existingDateItem.getDate().getItinerary();
+                    itinerary.setTripPrice(itinerary.getTripPrice() + retailPriceDiff);
+                    itinerary.setNetPrice(itinerary.getNetPrice() + netPriceDiff);
+                    itineraryRepository.save(itinerary);
                 }
-                dateItemRepository.saveAll(prioritiesToUpdate);
+
+                // Handle priority changes
+                final Short originalPriority = existingDateItem.getPriority();
+                if (originalPriority != null && dateItemDto.getPriority() != null
+                        && !originalPriority.equals(dateItemDto.getPriority())) {
+                    List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(date.getId()).stream()
+                            .filter(di -> di.getPriority() != null
+                                    && di.getPriority() >= dateItemDto.getPriority()
+                                    && di.getPriority() < originalPriority
+                                    && !di.getId().equals(existingDateItem.getId()))
+                            .collect(Collectors.toList());
+
+                    for (DateItem di : prioritiesToUpdate) {
+                        di.setPriority((short) (di.getPriority() + 1));
+                    }
+                    dateItemRepository.saveAll(prioritiesToUpdate);
+                }
+
+                dateItem = convertFromDto(dateItemDto);
+
+            } else {
+                throw new RuntimeException("DateItem with ID " + dateItemDto.getId() + " not found");
             }
+        } else {
+            throw new RuntimeErrorException(new Error("DateItem not found"));
         }
-        dateItem.setId(new DateItemId(dateId, itemId));
-        dateItem = convertFromDto(dateItemDto);
-        dateItem.setDate(date);
-        dateItem.setItem(item);
 
         dateItemRepository.save(dateItem);
     }
 
-    public void removeItemFromDate(Long dateId, Long itemId) {
-        // Remove the item from the date's items set
-        Optional<Date> dateOpt = dateRepository.findById(dateId);
-        Optional<Item> itemOpt = itemRepository.findById(itemId); // Use findById here since we may need to remove
-                                                                  // deleted items from itineraries
-
-        if (dateOpt.isPresent() && itemOpt.isPresent()) {
-            Date date = dateOpt.get();
-            DateItem dateItem = date.getDateItems().stream()
-                    .filter(di -> di.getItem().getId().equals(itemId))
-                    .findFirst()
-                    .orElse(null);
-            if (dateItem == null) {
-                throw new RuntimeException("DateItem not found for the given date and item IDs!");
-            } else if (dateItem.getRetailPrice() != 0 || dateItem.getNetPrice() != 0) {
-                Itinerary itinerary = date.getItinerary();
-                itinerary.setTripPrice(itinerary.getTripPrice() - dateItem.getRetailPrice());
-                itinerary.setNetPrice(itinerary.getNetPrice() - dateItem.getNetPrice());
-                itineraryRepository.save(itinerary);
-            }
-
-            date.getDateItems().removeIf(di -> di.getItem().getId().equals(itemId));
-            dateRepository.save(date); // Update the relationship
-
-            // Remove any DateItem for this date/item
-            dateItemRepository.findByDateIdAndItemId(dateId, itemId)
-                    .ifPresent(dateItemRepository::delete);
-            return;
+    public void removeItemFromDate(Long dateItemId) {
+        Optional<DateItem> dateItemOpt = dateItemRepository.findById(dateItemId);
+        if (dateItemOpt.isEmpty()) {
+            throw new RuntimeException("DateItem with ID " + dateItemId + " not found!");
         }
-        throw new RuntimeException("Date or Item not found!");
+        DateItem dateItem = dateItemOpt.get();
+        Date date = dateItem.getDate();
+        Item item = dateItem.getItem();
+
+        // Subtract prices from itinerary totals
+        if (dateItem.getRetailPrice() != 0 || dateItem.getNetPrice() != 0) {
+            Itinerary itinerary = date.getItinerary();
+            itinerary.setTripPrice(itinerary.getTripPrice() - dateItem.getRetailPrice());
+            itinerary.setNetPrice(itinerary.getNetPrice() - dateItem.getNetPrice());
+            itineraryRepository.save(itinerary);
+        }
+
+        dateItemRepository.delete(dateItem);
+        date.getDateItems().remove(dateItem);
+        item.getDateItems().remove(dateItem);
+        dateRepository.save(date);
+        itemRepository.save(item);
+        return;
+    }
+
+    private Date convertFromDto(DateDto dateDto) {
+        Date date = new Date();
+        date.setId(dateDto.getId());
+        date.setName(dateDto.getName());
+        date.setLocation(dateDto.getLocation());
+        date.setDate(dateDto.getDate());
+        return date;
+    }
+
+    private Item convertFromDto(ItemDto itemDto) {
+        Item item = new Item();
+        item.setId(itemDto.getId());
+        item.setCountry(itemDto.getCountry());
+        item.setLocation(itemDto.getLocation());
+        item.setCategory(itemDto.getCategory());
+        item.setName(itemDto.getName());
+        item.setDescription(itemDto.getDescription());
+        item.setRetailPrice(itemDto.getRetailPrice());
+        item.setNetPrice(itemDto.getNetPrice());
+        item.setImageNames(itemDto.getImageNames());
+        return item;
     }
 
     private DateItem convertFromDto(DateItemDto dateItemDto) {
         DateItem dateItem = new DateItem();
-        dateItem.setId(new DateItemId(dateItemDto.getDate().getId(), dateItemDto.getItem().getId()));
+        dateItem.setId(dateItemDto.getId());
+        dateItem.setDate(convertFromDto(dateItemDto.getDate()));
+        dateItem.setItem(convertFromDto(dateItemDto.getItem()));
         dateItem.setCountry(dateItemDto.getCountry());
         dateItem.setLocation(dateItemDto.getLocation());
         dateItem.setCategory(dateItemDto.getCategory());
@@ -327,5 +305,29 @@ public class DateService {
                 supplier != null ? supplier.getEmail() : null,
                 supplier != null ? supplier.getUrl() : null,
                 item.getNotes());
+    }
+
+    private DateItemDto convertToDto(DateItem dateItem) {
+        DateItemDto dto = new DateItemDto();
+        dto.setId(dateItem.getId());
+        dto.setDate(convertToDto(dateItem.getDate()));
+        dto.setItem(convertToDto(dateItem.getItem()));
+        dto.setName(dateItem.getName());
+        dto.setDescription(dateItem.getDescription());
+        dto.setCountry(dateItem.getCountry());
+        dto.setLocation(dateItem.getLocation());
+        dto.setCategory(dateItem.getCategory());
+        dto.setSupplierCompany(dateItem.getSupplierCompany());
+        dto.setSupplierName(dateItem.getSupplierName());
+        dto.setSupplierNumber(dateItem.getSupplierNumber());
+        dto.setSupplierEmail(dateItem.getSupplierEmail());
+        dto.setSupplierUrl(dateItem.getSupplierUrl());
+        dto.setRetailPrice(dateItem.getRetailPrice());
+        dto.setNetPrice(dateItem.getNetPrice());
+        dto.setImageNames(dateItem.getImageNames());
+        dto.setPriority(dateItem.getPriority());
+        dto.setNotes(dateItem.getNotes());
+        dto.setPdfName(dateItem.getPdfName());
+        return dto;
     }
 }
