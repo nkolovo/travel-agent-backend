@@ -1,7 +1,6 @@
 package com.travelagent.app.controllers;
 
 import com.travelagent.app.dto.DateItemDto;
-import com.travelagent.app.models.Date;
 import com.travelagent.app.services.DateService;
 
 import java.util.List;
@@ -24,18 +23,18 @@ public class DateController {
     }
 
     @PostMapping("/add/{dateId}/item/{itemId}/priority/{priority}")
-    public Date addItemToDate(@PathVariable Long dateId, @PathVariable Long itemId, @PathVariable Short priority) {
+    public DateItemDto addItemToDate(@PathVariable Long dateId, @PathVariable Long itemId,
+            @PathVariable Short priority) {
         return dateService.addItemToDate(dateId, itemId, priority);
     }
 
-    @PostMapping("/remove/{dateId}/item/{itemId}")
-    public void removeItemFromDate(@PathVariable Long dateId, @PathVariable Long itemId) {
-        dateService.removeItemFromDate(dateId, itemId);
+    @PostMapping("/saveDateItem")
+    public void saveDateItemToDate(@RequestBody DateItemDto dateItem) {
+        dateService.saveDateItemToDate(dateItem);
     }
 
-    @PostMapping("saveDateItem/{dateId}/item/{itemId}")
-    public void saveDateItemToDate(@PathVariable Long dateId, @PathVariable Long itemId,
-            @RequestBody DateItemDto dateItem) {
-        dateService.saveDateItemToDate(dateId, itemId, dateItem);
+    @PostMapping("/remove/activity/{dateItemId}")
+    public void removeItemFromDate(@PathVariable Long dateItemId) {
+        dateService.removeItemFromDate(dateItemId);
     }
 }

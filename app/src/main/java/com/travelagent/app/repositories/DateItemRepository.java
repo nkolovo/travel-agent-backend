@@ -1,17 +1,21 @@
 package com.travelagent.app.repositories;
 
 import com.travelagent.app.models.DateItem;
-import com.travelagent.app.models.DateItemId;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface DateItemRepository extends JpaRepository<DateItem, DateItemId> {
-    Optional<DateItem> findByDateIdAndItemId(Long dateId, Long itemId);
+public interface DateItemRepository extends JpaRepository<DateItem, Long> {
+    @Query("SELECT di FROM DateItem di WHERE di.date.id = :dateId AND di.item.id = :itemId")
+    List<DateItem> findByDateIdAndItemId(@Param("dateId") Long dateId, @Param("itemId") Long itemId);
 
-    List<DateItem> findByDateId(Long dateId);
+    @Query("SELECT di FROM DateItem di WHERE di.date.id = :dateId")
+    List<DateItem> findByDateId(@Param("dateId") Long dateId);
 
-    List<DateItem> findByItemId(Long itemId);
+    @Query("SELECT di FROM DateItem di WHERE di.item.id = :itemId")
+    List<DateItem> findByItemId(@Param("itemId") Long itemId);
 }
