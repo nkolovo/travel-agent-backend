@@ -21,6 +21,7 @@ public class Item {
     private String description;
     private int retailPrice;
     private int netPrice;
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
     @ElementCollection

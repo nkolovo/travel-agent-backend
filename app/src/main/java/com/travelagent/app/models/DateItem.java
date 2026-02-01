@@ -69,6 +69,7 @@ public class DateItem {
     private int netPrice;
 
     @JsonProperty("notes")
+    @Column(columnDefinition = "TEXT")
     private String notes;
 
     @JsonProperty("pdf_name")
