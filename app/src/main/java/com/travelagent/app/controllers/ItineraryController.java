@@ -225,7 +225,6 @@ public class ItineraryController {
                         try {
                             String signedUrl = gcsImageService.getSignedUrl(imageName);
                             dto.getImageUrls().add(signedUrl);
-                            System.out.println("Generated signed URL for: " + imageName);
                         } catch (Exception e) {
                             System.err.println("Warning: Failed to generate signed URL for image: " + imageName + " - "
                                     + e.getMessage());
@@ -233,7 +232,7 @@ public class ItineraryController {
                         }
                     }
                 }
-                
+
                 // Generate signed URL for PDF if it exists
                 if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
                     try {
@@ -246,7 +245,7 @@ public class ItineraryController {
                         // Continue processing instead of failing completely
                     }
                 }
-                
+
                 allDateItemDtos.add(dto);
             }
         }
@@ -273,7 +272,8 @@ public class ItineraryController {
         html = html.replace("&nbsp;", "&#160;");
 
         // Targeted unescaping only for span tags with background-color styles
-        html = html.replaceAll("&lt;span style=&quot;background-color: ([^&]+?)&quot;&gt;", "<span style=\"background-color: $1\">");
+        html = html.replaceAll("&lt;span style=&quot;background-color: ([^&]+?)&quot;&gt;",
+                "<span style=\"background-color: $1\">");
         html = html.replaceAll("&lt;/span&gt;", "</span>");
 
         // Normalize line breaks
@@ -281,13 +281,13 @@ public class ItineraryController {
 
         // Fix DOCTYPE case - OpenHTMLToPDF requires uppercase DOCTYPE
         html = html.replace("<!doctype html>", "<!DOCTYPE html>");
-        
+
         // Ensure proper XML structure - remove any BOM or invisible characters
         html = html.trim();
         if (html.startsWith("\uFEFF")) {
             html = html.substring(1); // Remove BOM
         }
-        
+
         // Convert HTML to PDF
         ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
         PdfRendererBuilder builder = new PdfRendererBuilder();
