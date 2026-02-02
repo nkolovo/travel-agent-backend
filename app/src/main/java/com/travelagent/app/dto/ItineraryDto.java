@@ -27,13 +27,14 @@ public class ItineraryDto {
     private List<DateDto> dates;
     private String imageName;
     private String coverImageUrl;
+    private String notes;
 
     public ItineraryDto() {
     }
 
     public ItineraryDto(Long id, String agent, LocalDate createdDate, LocalDateTime editedDate, LocalDate dateSold,
             String reservationNumber, String leadName, int numTravelers, LocalDate arrivalDate,
-            LocalDate departureDate, int tripPrice, int netPrice, String status, boolean docsSent) {
+            LocalDate departureDate, int tripPrice, int netPrice, String status, boolean docsSent, String notes) {
         this.id = id;
         this.agent = agent;
         this.createdDate = createdDate;
@@ -48,11 +49,13 @@ public class ItineraryDto {
         this.netPrice = netPrice;
         this.status = status;
         this.docsSent = docsSent;
+        this.notes = notes;
     }
 
     public ItineraryDto(Long id, String name, String agent, LocalDate createdDate, LocalDateTime editedDate,
             LocalDate dateSold, String reservationNumber, String leadName, int numTravelers, LocalDate arrivalDate,
-            LocalDate departureDate, int tripPrice, int netPrice, String status, boolean docsSent, String imageName) {
+            LocalDate departureDate, int tripPrice, int netPrice, String status, boolean docsSent, String imageName,
+            String notes) {
         this.id = id;
         this.name = name;
         this.agent = agent;
@@ -69,6 +72,7 @@ public class ItineraryDto {
         this.status = status;
         this.docsSent = docsSent;
         this.imageName = imageName;
+        this.notes = notes;
     }
 
     public Long getId() {
@@ -221,5 +225,13 @@ public class ItineraryDto {
 
     public void setDates(List<DateDto> dates) {
         this.dates = dates;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 }
