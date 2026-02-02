@@ -35,6 +35,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/itineraries")
@@ -207,6 +209,11 @@ public class ItineraryController {
         return itineraryService.removeDateFromItinerary(dateId, itineraryId);
     }
 
+    @PostMapping("/{itineraryId}/notes/save")
+    public boolean saveNotesToItinerary(@PathVariable Long itineraryId, @RequestBody String notes) {
+        return itineraryService.saveNotesToItinerary(itineraryId, notes);
+    }
+
     @GetMapping("generate-pdf/{id}")
     public ResponseEntity<byte[]> getPdf(@PathVariable Long id) throws IOException {
         ItineraryDto itinerary = itineraryService.getItineraryById(id);
@@ -326,6 +333,7 @@ public class ItineraryController {
         itinerary.setStatus(itineraryDto.getStatus());
         itinerary.setDocsSent(itineraryDto.isDocsSent());
         itinerary.setImageName(itineraryDto.getImageName());
+        itinerary.setNotes(itineraryDto.getNotes());
         return itinerary;
     }
 }

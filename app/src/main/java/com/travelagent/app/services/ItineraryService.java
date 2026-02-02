@@ -197,6 +197,15 @@ public class ItineraryService {
         }
     }
 
+    public boolean saveNotesToItinerary(Long itineraryId, String notes) {
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+        itinerary.setNotes(notes);
+        itinerary.setEditedDate(LocalDateTime.now());
+        itineraryRepository.save(itinerary);
+        return true;
+    }
+
     private Date mapToDate(DateDto dateDto) {
         Date date = new Date();
         date.setId(dateDto.getId());

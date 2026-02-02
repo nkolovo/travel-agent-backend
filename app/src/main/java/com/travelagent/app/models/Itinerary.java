@@ -60,6 +60,8 @@ public class Itinerary {
     private boolean docsSent;
     @Column(name = "image_name")
     private String imageName;
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -74,6 +76,10 @@ public class Itinerary {
     @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("itinerary-date")
     private List<Date> dates;
+
+    @OneToMany(mappedBy = "itinerary", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("itinerary-traveler")
+    private List<Traveler> travelers;
 
     public Itinerary() {
     }
