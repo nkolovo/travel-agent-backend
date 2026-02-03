@@ -2,13 +2,14 @@ package com.travelagent.app.services;
 
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItineraryDto;
-
+import com.travelagent.app.dto.TravelerDto;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
-
+import com.travelagent.app.models.Traveler;
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
+import com.travelagent.app.repositories.TravelerRepository;
 
 import org.springframework.stereotype.Service;
 
@@ -23,10 +24,13 @@ public class ItineraryService {
 
     private final ItineraryRepository itineraryRepository;
     private final DateRepository dateRepository;
+    private final TravelerRepository travelerRepository;
 
-    public ItineraryService(ItineraryRepository itineraryRepository, DateRepository dateRepository) {
+    public ItineraryService(ItineraryRepository itineraryRepository, DateRepository dateRepository,
+            TravelerRepository travelerRepository) {
         this.itineraryRepository = itineraryRepository;
         this.dateRepository = dateRepository;
+        this.travelerRepository = travelerRepository;
     }
 
     public List<ItineraryDto> getAllItineraries() {
@@ -204,6 +208,49 @@ public class ItineraryService {
         itinerary.setEditedDate(LocalDateTime.now());
         itineraryRepository.save(itinerary);
         return true;
+    }
+
+    public List<Traveler> getTravelersForItinerary(Long itineraryId) {
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+        return itinerary.getTravelers();
+    }
+
+    public Long saveTravelerToItinerary(Long itineraryId, TravelerDto travelerDto) {
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+
+        // Get existing traveler or create new one
+        boolean existingTraveler = (travelerDto.getId() != null);
+        Traveler traveler = existingTraveler
+                ? travelerRepository.findById(travelerDto.getId())
+                        .orElseThrow(
+                                () -> new RuntimeException("Could not find traveler with ID " + travelerDto.getId()))
+                : new Traveler();
+
+        // Update traveler fields
+        traveler.setFirstName(travelerDto.getFirstName());
+        traveler.setLastName(travelerDto.getLastName());
+        traveler.setEmail(travelerDto.getEmail());
+        traveler.setPhone(travelerDto.getPhone());
+        traveler.setPassportNumber(travelerDto.getPassportNumber());
+
+        if (!existingTraveler)
+            traveler.setItinerary(itinerary);
+
+        return travelerRepository.save(traveler).getId();
+    }
+
+    public void removeTravelerFromItinerary(Long itineraryId, Long travelerId) {
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+        Traveler traveler = travelerRepository.findById(travelerId)
+                .orElseThrow(() -> new RuntimeException("Could not find traveler with ID " + travelerId));
+
+        itinerary.getTravelers().removeIf(t -> t.getId().equals(travelerId));
+
+        travelerRepository.delete(traveler);
+        itineraryRepository.save(itinerary);
     }
 
     private Date mapToDate(DateDto dateDto) {
