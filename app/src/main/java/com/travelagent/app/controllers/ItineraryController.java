@@ -3,13 +3,14 @@ package com.travelagent.app.controllers;
 import com.travelagent.app.models.Client;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.Itinerary;
+import com.travelagent.app.models.Traveler;
 import com.travelagent.app.models.User;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.ItineraryDto;
-
+import com.travelagent.app.dto.TravelerDto;
 import com.travelagent.app.services.ClientService;
 import com.travelagent.app.services.GcsImageService;
 import com.travelagent.app.services.GcsPdfService;
@@ -37,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/itineraries")
@@ -212,6 +215,21 @@ public class ItineraryController {
     @PostMapping("/{itineraryId}/notes/save")
     public boolean saveNotesToItinerary(@PathVariable Long itineraryId, @RequestBody String notes) {
         return itineraryService.saveNotesToItinerary(itineraryId, notes);
+    }
+
+    @GetMapping("/{itineraryId}/travelers")
+    public List<Traveler> getTravelers(@PathVariable Long itineraryId) {
+        return itineraryService.getTravelersForItinerary(itineraryId);
+    }
+
+    @PostMapping("/{itineraryId}/traveler")
+    public Long saveTraveler(@PathVariable Long itineraryId, @RequestBody TravelerDto traveler) {
+        return itineraryService.saveTravelerToItinerary(itineraryId, traveler);
+    }
+
+    @DeleteMapping("/{itineraryId}/traveler/{travelerId}")
+    public void removeTraveler(@PathVariable Long itineraryId, @PathVariable Long travelerId) {
+        itineraryService.removeTravelerFromItinerary(itineraryId, travelerId);
     }
 
     @GetMapping("generate-pdf/{id}")
