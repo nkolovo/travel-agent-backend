@@ -233,7 +233,8 @@ public class ItineraryController {
     }
 
     @GetMapping("generate-pdf/{id}")
-    public ResponseEntity<byte[]> getPdf(@PathVariable Long id) throws IOException {
+    public ResponseEntity<byte[]> getPdf(@PathVariable Long id, 
+            @RequestParam(required = false, defaultValue = "false") boolean preview) throws IOException {
         ItineraryDto itinerary = itineraryService.getItineraryById(id);
         List<DateDto> dates = new ArrayList<>(itinerary.getDates());
         dates.sort(Comparator.comparing(DateDto::getDate));
@@ -332,9 +333,10 @@ public class ItineraryController {
 
         byte[] pdfBytes = pdfStream.toByteArray();
 
+        String disposition = preview ? "inline" : "attachment";
         return ResponseEntity.ok()
                 .header("Content-Type", "application/pdf")
-                .header("Content-Disposition", "attachment; filename=itinerary.pdf")
+                .header("Content-Disposition", disposition + "; filename=itinerary.pdf")
                 .body(pdfBytes);
     }
 
