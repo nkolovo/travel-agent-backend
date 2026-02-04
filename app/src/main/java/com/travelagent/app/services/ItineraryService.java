@@ -3,31 +3,52 @@ package com.travelagent.app.services;
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.ItineraryDto;
 import com.travelagent.app.dto.TravelerDto;
+import com.travelagent.app.models.Client;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.Traveler;
+import com.travelagent.app.models.User;
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
 import com.travelagent.app.repositories.TravelerRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class ItineraryService {
 
+    private final UserService userService;
+    private final ClientService clientService;
+
     private final ItineraryRepository itineraryRepository;
     private final DateRepository dateRepository;
     private final TravelerRepository travelerRepository;
 
-    public ItineraryService(ItineraryRepository itineraryRepository, DateRepository dateRepository,
+    @Autowired
+    private GcsImageService gcsImageService;
+
+    public ItineraryService(UserService userService, ClientService clientService,
+            ItineraryRepository itineraryRepository, DateRepository dateRepository,
             TravelerRepository travelerRepository) {
+        this.userService = userService;
+        this.clientService = clientService;
         this.itineraryRepository = itineraryRepository;
         this.dateRepository = dateRepository;
         this.travelerRepository = travelerRepository;
@@ -82,8 +103,85 @@ public class ItineraryService {
         return itineraryRepository.findNewestReservationNumber();
     }
 
-    public Itinerary saveItinerary(Itinerary itinerary) {
-        return itineraryRepository.save(itinerary);
+    public Map<HttpStatus, Long> createItinerary(ItineraryDto itineraryDto) {
+        try {
+            Itinerary itinerary = mapToItinerary(itineraryDto);
+
+            // Handle user relationship
+            if (itineraryDto.getAgent() != null) {
+                User user = userService.getUserByUsername(itineraryDto.getAgent());
+                itinerary.setUser(user);
+            }
+
+            // Handle client relationship
+            if (itineraryDto.getClientName() != null) {
+                Client returningClient = clientService.getClientByName(itineraryDto.getClientName());
+                if (returningClient != null) {
+                    itinerary.setClient(returningClient);
+                } else {
+                    Client savedClient = clientService.saveClient(new Client(itineraryDto.getClientName()));
+                    itinerary.setClient(savedClient);
+                }
+            }
+
+            // Ensure that the dates list is initialized if not provided
+            if (itinerary.getDates() == null) {
+                itinerary.setDates(new ArrayList<>());
+            }
+
+            // Save the itinerary to the database
+            itineraryRepository.save(itinerary);
+
+            return Map.of(HttpStatus.CREATED, itinerary.getId());
+        } catch (Exception e) {
+            return Map.of(HttpStatus.INTERNAL_SERVER_ERROR, -1L);
+        }
+    }
+
+    public ResponseEntity<String> updateItinerary(@RequestBody Map<String, Object> updates) {
+        try {
+            Long itineraryId = Long.valueOf((int) updates.get("itineraryId"));
+            Itinerary itinerary = getEntityById(itineraryId);
+
+            String title = (String) updates.get("title");
+            int tripCost = (int) updates.get("tripCost");
+            int netCost = (int) updates.get("netCost");
+
+            itinerary.setName(title);
+            itinerary.setTripPrice(tripCost);
+            itinerary.setNetPrice(netCost);
+            itinerary.setEditedDate(LocalDateTime.now());
+
+            itineraryRepository.save(itinerary);
+            return ResponseEntity.ok("Itinerary updated successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error updating itinerary: " + e.getMessage());
+        }
+    }
+
+    public HttpStatus uploadItineraryImage(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+            }
+
+            String fileName = file.getOriginalFilename();
+
+            if (!gcsImageService.doesImageExist(fileName)) {
+                // Upload to GCS
+                gcsImageService.uploadImage(file, fileName);
+            }
+
+            // Save the file name in the itinerary
+            Itinerary itinerary = getEntityById(id);
+            itinerary.setImageName(fileName);
+            itineraryRepository.save(itinerary);
+
+            return HttpStatus.OK;
+        } catch (IOException e) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
     }
 
     public void deleteItinerary(Long id) {
@@ -252,6 +350,27 @@ public class ItineraryService {
 
         travelerRepository.delete(traveler);
         itineraryRepository.save(itinerary);
+    }
+
+    private Itinerary mapToItinerary(ItineraryDto itineraryDto) {
+        Itinerary itinerary = new Itinerary();
+        itinerary.setId(itineraryDto.getId());
+        itinerary.setName(itineraryDto.getName());
+        itinerary.setAgent(itineraryDto.getAgent());
+        itinerary.setCreatedDate(itineraryDto.getCreatedDate());
+        itinerary.setEditedDate(itineraryDto.getEditedDate());
+        itinerary.setDateSold(itineraryDto.getDateSold());
+        itinerary.setReservationNumber(itineraryDto.getReservationNumber());
+        itinerary.setLeadName(itineraryDto.getLeadName());
+        itinerary.setNumTravelers(itineraryDto.getNumTravelers());
+        itinerary.setArrivalDate(itineraryDto.getArrivalDate());
+        itinerary.setDepartureDate(itineraryDto.getDepartureDate());
+        itinerary.setTripPrice(itineraryDto.getTripPrice());
+        itinerary.setStatus(itineraryDto.getStatus());
+        itinerary.setDocsSent(itineraryDto.isDocsSent());
+        itinerary.setImageName(itineraryDto.getImageName());
+        itinerary.setNotes(itineraryDto.getNotes());
+        return itinerary;
     }
 
     private Date mapToDate(DateDto dateDto) {

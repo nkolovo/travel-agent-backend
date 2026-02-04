@@ -2,6 +2,8 @@ package com.travelagent.app.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,11 +25,19 @@ public class Traveler {
     private String dateOfBirth;
     private String email;
     private String phone;
+    
+    @ColumnDefault("false")
+    private boolean isLead;
 
     @ManyToOne
     @JoinColumn(name = "itinerary_id")
     @JsonBackReference("itinerary-traveler")
     private Itinerary itinerary;
+
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    @JsonBackReference("client-traveler")
+    private Client client;
 
     public Long getId() {
         return id;
@@ -85,11 +95,27 @@ public class Traveler {
         this.phone = phone;
     }
 
+    public boolean isLead() {
+        return isLead;
+    }
+
+    public void setLead(boolean isLead) {
+        this.isLead = isLead;
+    }
+
     public Itinerary getItinerary() {
         return itinerary;
     }
 
     public void setItinerary(Itinerary itinerary) {
         this.itinerary = itinerary;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
     }
 }

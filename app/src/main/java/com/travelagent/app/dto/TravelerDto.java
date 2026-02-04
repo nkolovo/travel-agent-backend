@@ -8,6 +8,7 @@ public class TravelerDto {
     public String email;
     public String phone;
     public String passportNumber;
+    public boolean isLead;
 
     public Long getId() {
         return id;
@@ -63,5 +64,13 @@ public class TravelerDto {
 
     public void setPassportNumber(String passportNumber) {
         this.passportNumber = passportNumber;
+    }
+
+    public boolean isLead() {
+        return isLead;
+    }
+
+    public void setLead(boolean isLead) {
+        this.isLead = isLead;
     }
 }
