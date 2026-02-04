@@ -3,13 +3,14 @@ package com.travelagent.app.controllers;
 import com.travelagent.app.models.Client;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.Itinerary;
+import com.travelagent.app.models.Traveler;
 import com.travelagent.app.models.User;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import com.travelagent.app.dto.DateDto;
 import com.travelagent.app.dto.DateItemDto;
 import com.travelagent.app.dto.ItineraryDto;
-
+import com.travelagent.app.dto.TravelerDto;
 import com.travelagent.app.services.ClientService;
 import com.travelagent.app.services.GcsImageService;
 import com.travelagent.app.services.GcsPdfService;
@@ -35,6 +36,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/itineraries")
@@ -207,6 +212,26 @@ public class ItineraryController {
         return itineraryService.removeDateFromItinerary(dateId, itineraryId);
     }
 
+    @PostMapping("/{itineraryId}/notes/save")
+    public boolean saveNotesToItinerary(@PathVariable Long itineraryId, @RequestBody String notes) {
+        return itineraryService.saveNotesToItinerary(itineraryId, notes);
+    }
+
+    @GetMapping("/{itineraryId}/travelers")
+    public List<Traveler> getTravelers(@PathVariable Long itineraryId) {
+        return itineraryService.getTravelersForItinerary(itineraryId);
+    }
+
+    @PostMapping("/{itineraryId}/traveler")
+    public Long saveTraveler(@PathVariable Long itineraryId, @RequestBody TravelerDto traveler) {
+        return itineraryService.saveTravelerToItinerary(itineraryId, traveler);
+    }
+
+    @DeleteMapping("/{itineraryId}/traveler/{travelerId}")
+    public void removeTraveler(@PathVariable Long itineraryId, @PathVariable Long travelerId) {
+        itineraryService.removeTravelerFromItinerary(itineraryId, travelerId);
+    }
+
     @GetMapping("generate-pdf/{id}")
     public ResponseEntity<byte[]> getPdf(@PathVariable Long id) throws IOException {
         ItineraryDto itinerary = itineraryService.getItineraryById(id);
@@ -225,7 +250,6 @@ public class ItineraryController {
                         try {
                             String signedUrl = gcsImageService.getSignedUrl(imageName);
                             dto.getImageUrls().add(signedUrl);
-                            System.out.println("Generated signed URL for: " + imageName);
                         } catch (Exception e) {
                             System.err.println("Warning: Failed to generate signed URL for image: " + imageName + " - "
                                     + e.getMessage());
@@ -233,7 +257,7 @@ public class ItineraryController {
                         }
                     }
                 }
-                
+
                 // Generate signed URL for PDF if it exists
                 if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
                     try {
@@ -246,7 +270,7 @@ public class ItineraryController {
                         // Continue processing instead of failing completely
                     }
                 }
-                
+
                 allDateItemDtos.add(dto);
             }
         }
@@ -273,7 +297,8 @@ public class ItineraryController {
         html = html.replace("&nbsp;", "&#160;");
 
         // Targeted unescaping only for span tags with background-color styles
-        html = html.replaceAll("&lt;span style=&quot;background-color: ([^&]+?)&quot;&gt;", "<span style=\"background-color: $1\">");
+        html = html.replaceAll("&lt;span style=&quot;background-color: ([^&]+?)&quot;&gt;",
+                "<span style=\"background-color: $1\">");
         html = html.replaceAll("&lt;/span&gt;", "</span>");
 
         // Fix unclosed BR tags for XML compliance
@@ -285,13 +310,13 @@ public class ItineraryController {
 
         // Fix DOCTYPE case - OpenHTMLToPDF requires uppercase DOCTYPE
         html = html.replace("<!doctype html>", "<!DOCTYPE html>");
-        
+
         // Ensure proper XML structure - remove any BOM or invisible characters
         html = html.trim();
         if (html.startsWith("\uFEFF")) {
             html = html.substring(1); // Remove BOM
         }
-        
+
         // Convert HTML to PDF
         ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
         PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -330,6 +355,7 @@ public class ItineraryController {
         itinerary.setStatus(itineraryDto.getStatus());
         itinerary.setDocsSent(itineraryDto.isDocsSent());
         itinerary.setImageName(itineraryDto.getImageName());
+        itinerary.setNotes(itineraryDto.getNotes());
         return itinerary;
     }
 }
