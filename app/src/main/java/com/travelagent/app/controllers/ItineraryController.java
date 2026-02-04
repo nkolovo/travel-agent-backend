@@ -234,8 +234,9 @@ public class ItineraryController {
 
     @GetMapping("generate-pdf/{id}")
     public ResponseEntity<byte[]> getPdf(@PathVariable Long id, 
-            @RequestParam(required = false, defaultValue = "false") boolean preview) throws IOException {
-        ItineraryDto itinerary = itineraryService.getItineraryById(id);
+            @RequestParam(required = false, defaultValue = "false") boolean preview) {
+        try {
+            ItineraryDto itinerary = itineraryService.getItineraryById(id);
         List<DateDto> dates = new ArrayList<>(itinerary.getDates());
         dates.sort(Comparator.comparing(DateDto::getDate));
         itinerary.setDates(dates);
@@ -328,6 +329,8 @@ public class ItineraryController {
         } catch (Exception e) {
             System.err.println("Failed to generate PDF. HTML content length: " + html.length());
             System.err.println("HTML starts with: " + html.substring(0, Math.min(200, html.length())));
+            System.err.println("Exception: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
 
@@ -338,6 +341,13 @@ public class ItineraryController {
                 .header("Content-Type", "application/pdf")
                 .header("Content-Disposition", disposition + "; filename=itinerary.pdf")
                 .body(pdfBytes);
+        } catch (Exception e) {
+            System.err.println("Unexpected error in getPdf endpoint: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .header("Content-Type", "text/plain")
+                    .body(("Error generating PDF: " + e.getMessage()).getBytes());
+        }
     }
 
     private Itinerary mapToItinerary(ItineraryDto itineraryDto) {
