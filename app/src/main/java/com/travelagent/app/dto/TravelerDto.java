@@ -4,6 +4,7 @@ public class TravelerDto {
     public Long id;
     public String firstName;
     public String lastName;
+    public String dateOfBirth;
     public String email;
     public String phone;
     public String passportNumber;
@@ -30,6 +31,14 @@ public class TravelerDto {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(String dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public String getEmail() {

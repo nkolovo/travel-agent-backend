@@ -20,6 +20,7 @@ public class Traveler {
     private String firstName;
     private String lastName;
     private String passportNumber;
+    private String dateOfBirth;
     private String email;
     private String phone;
 
@@ -58,6 +59,14 @@ public class Traveler {
 
     public void setPassportNumber(String passportNumber) {
         this.passportNumber = passportNumber;
+    }
+
+    public String getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(String dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
     }
 
     public String getEmail() {
