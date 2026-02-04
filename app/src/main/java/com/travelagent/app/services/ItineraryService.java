@@ -231,6 +231,7 @@ public class ItineraryService {
         // Update traveler fields
         traveler.setFirstName(travelerDto.getFirstName());
         traveler.setLastName(travelerDto.getLastName());
+        traveler.setDateOfBirth(travelerDto.getDateOfBirth());
         traveler.setEmail(travelerDto.getEmail());
         traveler.setPhone(travelerDto.getPhone());
         traveler.setPassportNumber(travelerDto.getPassportNumber());
