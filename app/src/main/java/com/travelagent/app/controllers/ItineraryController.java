@@ -235,6 +235,7 @@ public class ItineraryController {
     @GetMapping("generate-pdf/{id}")
     public ResponseEntity<byte[]> getPdf(@PathVariable Long id, 
             @RequestParam(required = false, defaultValue = "false") boolean preview) {
+        System.out.println("=== getPdf called: id=" + id + ", preview=" + preview + " ===");
         try {
             ItineraryDto itinerary = itineraryService.getItineraryById(id);
         List<DateDto> dates = new ArrayList<>(itinerary.getDates());
