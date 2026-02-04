@@ -20,15 +20,18 @@ import com.travelagent.app.services.DateItemService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -233,7 +236,7 @@ public class ItineraryController {
     }
 
     @GetMapping("generate-pdf/{id}")
-    public ResponseEntity<byte[]> getPdf(@PathVariable Long id, 
+    public ResponseEntity<StreamingResponseBody> getPdf(@PathVariable Long id, 
             @RequestParam(required = false, defaultValue = "false") boolean preview) {
         System.out.println("=== getPdf called: id=" + id + ", preview=" + preview + " ===");
         try {
@@ -320,34 +323,38 @@ public class ItineraryController {
             html = html.substring(1); // Remove BOM
         }
 
-        // Convert HTML to PDF
-        ByteArrayOutputStream pdfStream = new ByteArrayOutputStream();
-        PdfRendererBuilder builder = new PdfRendererBuilder();
-        builder.withHtmlContent(html, null);
-        builder.toStream(pdfStream);
-        try {
-            builder.run();
-        } catch (Exception e) {
-            System.err.println("Failed to generate PDF. HTML content length: " + html.length());
-            System.err.println("HTML starts with: " + html.substring(0, Math.min(200, html.length())));
-            System.err.println("Exception: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
-
-        byte[] pdfBytes = pdfStream.toByteArray();
-
+        // Convert HTML to PDF using streaming to avoid Cloud Run response size limits
+        final String finalHtml = html;
         String disposition = preview ? "inline" : "attachment";
+        
+        StreamingResponseBody stream = outputStream -> {
+            try {
+                PdfRendererBuilder builder = new PdfRendererBuilder();
+                builder.withHtmlContent(finalHtml, null);
+                builder.toStream(outputStream);
+                builder.run();
+                outputStream.flush();
+            } catch (Exception e) {
+                System.err.println("Failed to generate PDF during streaming: " + e.getMessage());
+                e.printStackTrace();
+                throw new IOException("PDF generation failed", e);
+            }
+        };
+
         return ResponseEntity.ok()
-                .header("Content-Type", "application/pdf")
+                .contentType(MediaType.APPLICATION_PDF)
                 .header("Content-Disposition", disposition + "; filename=itinerary.pdf")
-                .body(pdfBytes);
+                .body(stream);
         } catch (Exception e) {
             System.err.println("Unexpected error in getPdf endpoint: " + e.getMessage());
             e.printStackTrace();
+            StreamingResponseBody errorStream = outputStream -> {
+                String errorMsg = "Error generating PDF: " + e.getMessage();
+                outputStream.write(errorMsg.getBytes());
+            };
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .header("Content-Type", "text/plain")
-                    .body(("Error generating PDF: " + e.getMessage()).getBytes());
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(errorStream);
         }
     }
 
