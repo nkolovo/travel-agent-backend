@@ -301,6 +301,10 @@ public class ItineraryController {
                 "<span style=\"background-color: $1\">");
         html = html.replaceAll("&lt;/span&gt;", "</span>");
 
+        // Fix unclosed BR tags for XML compliance
+        html = html.replaceAll("<br>", "<br/>");
+        html = html.replaceAll("<BR>", "<br/>");
+
         // Normalize line breaks
         html = html.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
 
