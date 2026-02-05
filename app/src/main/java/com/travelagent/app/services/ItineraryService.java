@@ -232,10 +232,12 @@ public class ItineraryService {
 
         if (currentLead != null) {
             currentLead.setLead(false);
+            currentLead.setClient(null);
             updatedTravelers.add(currentLead);
             if (existingTraveler != null) {
                 // New lead already exists: promote new one
                 existingTraveler.setLead(true);
+                existingTraveler.setClient(itinerary.getClient());
                 updatedTravelers.add(existingTraveler);
             } else {
                 // Create new lead traveler
@@ -444,10 +446,21 @@ public class ItineraryService {
         traveler.setPhone(travelerDto.getPhone());
         traveler.setPassportNumber(travelerDto.getPassportNumber());
 
+        if (traveler.isLead() && traveler.getClient() != null) {
+            // Update Client Email and phone to match lead traveler
+            Client client = traveler.getClient();
+            client.setEmail(traveler.getEmail());
+            client.setPhone(traveler.getPhone());
+            clientService.saveClient(client);
+        } else {
+            throw new RuntimeException("Client must be set to update lead traveler.");
+        }
+
         if (!existingTraveler)
             traveler.setItinerary(itinerary);
 
         return travelerRepository.save(traveler).getId();
+
     }
 
     public void removeTravelerFromItinerary(Long itineraryId, Long travelerId) {
