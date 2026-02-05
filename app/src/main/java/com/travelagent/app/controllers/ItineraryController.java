@@ -1,10 +1,7 @@
 package com.travelagent.app.controllers;
 
-import com.travelagent.app.models.Client;
 import com.travelagent.app.models.Date;
-import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.Traveler;
-import com.travelagent.app.models.User;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 import com.travelagent.app.dto.DateDto;
@@ -30,11 +27,9 @@ import org.thymeleaf.context.Context;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -227,13 +222,19 @@ public class ItineraryController {
             context.setVariable("edgeFadeUrl", edgeFadeUrl);
             String html = templateEngine.process("itinerary-pdf", context);
 
-            // Clean up HTML for XML parsing - more comprehensive escaping
+            // Clean up HTML for XML parsing
             html = html.replace("&nbsp;", "&#160;");
 
-            // Targeted unescaping only for span tags with background-color styles
-            html = html.replaceAll("&lt;span style=&quot;background-color: ([^&]+?)&quot;&gt;",
-                    "<span style=\"background-color: $1\">");
-            html = html.replaceAll("&lt;/span&gt;", "</span>");
+            // Convert deprecated font tags to CSS spans for better PDF rendering
+            html = html.replaceAll("<font size=\"(\\d+)\" color=\"([^\"]+)\">",
+                    "<span style=\"font-size: $1em; color: $2;\">");
+            html = html.replaceAll("<font color=\"([^\"]+)\" size=\"(\\d+)\">",
+                    "<span style=\"color: $1; font-size: $2em;\">");
+            html = html.replaceAll("<font size=\"(\\d+)\">",
+                    "<span style=\"font-size: $1em;\">");
+            html = html.replaceAll("<font color=\"([^\"]+)\">",
+                    "<span style=\"color: $1;\">");
+            html = html.replaceAll("</font>", "</span>");
 
             // Fix unclosed BR tags for XML compliance
             html = html.replaceAll("<br>", "<br/>");

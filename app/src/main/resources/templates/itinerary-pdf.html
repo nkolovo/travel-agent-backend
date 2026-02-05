@@ -301,16 +301,6 @@
         class="dateitem"
       >
         <h3 th:utext="${dateItem.name}">DateItem Title</h3>
-        <div
-          th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}"
-        >
-          <img
-            th:each="imageUrl : ${dateItem.imageUrls}"
-            th:src="${imageUrl}"
-            class="dateitem-image"
-            alt="DateItem Image"
-          />
-        </div>
         <div th:if="${dateItem.pdfUrl != null and !dateItem.pdfUrl.isEmpty()}">
           <div class="pdf-link-container">
             <a th:href="${dateItem.pdfUrl}" target="_blank" class="pdf-link">
@@ -320,6 +310,16 @@
         </div>
         <div class="description" th:utext="${dateItem.description}">
           DateItem Description
+        </div>
+        <div
+          th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}"
+        >
+          <img
+            th:each="imageUrl : ${dateItem.imageUrls}"
+            th:src="${imageUrl}"
+            class="dateitem-image"
+            alt="DateItem Image"
+          />
         </div>
       </div>
     </div>
