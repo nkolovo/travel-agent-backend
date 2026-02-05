@@ -42,4 +42,10 @@ public class ClientService {
     public void deleteClient(Long id) {
         clientRepository.deleteById(id);
     }
+
+    public void deleteClientIfOrphaned(Client client) {
+        if (client.getItineraries().isEmpty() && client.getTravelers().isEmpty()) {
+            clientRepository.delete(client);
+        }
+    }
 }
