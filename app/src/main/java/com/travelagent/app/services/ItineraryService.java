@@ -31,6 +31,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class ItineraryService {
@@ -512,6 +513,29 @@ public class ItineraryService {
         dateDto.setLocation(date.getLocation());
         dateDto.setDate(date.getDate());
         return dateDto;
+    }
+
+    public String generateShareableToken(Long itineraryId) {
+        Itinerary itinerary = itineraryRepository.findById(itineraryId)
+                .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + itineraryId));
+
+        // Generate or return existing token
+        if (itinerary.getShareableToken() == null || itinerary.getShareableToken().isEmpty()) {
+            String token = UUID.randomUUID().toString();
+            itinerary.setShareableToken(token);
+            itineraryRepository.save(itinerary);
+        }
+
+        return itinerary.getShareableToken();
+    }
+
+    public ItineraryDto getItineraryByToken(String token) {
+        Itinerary itinerary = itineraryRepository.findByShareableToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired shareable link"));
+
+        // Convert to DTO
+        ItineraryDto dto = getItineraryById(itinerary.getId());
+        return dto;
     }
 
 }

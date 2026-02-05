@@ -56,4 +56,6 @@ public interface ItineraryRepository extends JpaRepository<Itinerary, Long> {
                         "FROM Itinerary i WHERE LOWER(i.leadName) LIKE LOWER(CONCAT('%', :leadName, '%'))")
         List<ItineraryDto> findByLeadNameContainingIgnoreCase(@Param("leadName") String leadName);
 
+        Optional<Itinerary> findByShareableToken(String shareableToken);
+
 }

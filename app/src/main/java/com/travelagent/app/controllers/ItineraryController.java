@@ -287,9 +287,134 @@ public class ItineraryController {
         }
     }
 
-    // @PostMapping("generate-shareable-link/{id}")
-    // public String generateShareableLink(@PathVariable Long id) {
-    // String token = itineraryService.generateShareableToken(id);
-    // return "/shared/itinerary/" + token;
-    // }
+    @PostMapping("generate-shareable-link/{id}")
+    public ResponseEntity<Map<String, String>> generateShareableLink(@PathVariable Long id) {
+        try {
+            String token = itineraryService.generateShareableToken(id);
+            // Backend API URL - this generates the PDF directly
+            String backendUrl = System.getenv("BACKEND_URL");
+            if (backendUrl == null || backendUrl.isEmpty()) {
+                backendUrl = "http://localhost:8080"; // Default for development
+            }
+            String shareableUrl = backendUrl + "/api/itineraries/shared/" + token + "/pdf";
+            
+            return ResponseEntity.ok(Map.of(
+                "url", shareableUrl,
+                "shareableUrl", shareableUrl,
+                "token", token
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to generate shareable link: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/shared/{token}/pdf")
+    public ResponseEntity<StreamingResponseBody> getSharedPdf(@PathVariable String token) {
+        try {
+            // Get itinerary by token
+            ItineraryDto itinerary = itineraryService.getItineraryByToken(token);
+            Long id = itinerary.getId();
+
+            // Reuse existing PDF generation logic
+            List<DateDto> dates = new ArrayList<>(itinerary.getDates());
+            dates.sort(Comparator.comparing(DateDto::getDate));
+            itinerary.setDates(dates);
+
+            List<DateItemDto> allDateItemDtos = new ArrayList<>();
+            for (DateDto date : dates) {
+                List<DateItemDto> dateItems = dateItemService.getDateItemsByDate(date.getId());
+                for (DateItemDto dto : dateItems) {
+                    if (dto.getImageNames() != null && !dto.getImageNames().isEmpty()) {
+                        for (String imageName : dto.getImageNames()) {
+                            try {
+                                String signedUrl = gcsImageService.getSignedUrl(imageName);
+                                dto.getImageUrls().add(signedUrl);
+                            } catch (Exception e) {
+                                System.err.println("Warning: Failed to generate signed URL for image: " + imageName);
+                            }
+                        }
+                    }
+
+                    if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
+                        try {
+                            String pdfSignedUrl = gcsPdfService.getSignedUrl(dto.getPdfName());
+                            dto.setPdfUrl(pdfSignedUrl);
+                        } catch (Exception e) {
+                            System.err.println("Warning: Failed to generate signed URL for PDF: " + dto.getPdfName());
+                        }
+                    }
+
+                    allDateItemDtos.add(dto);
+                }
+            }
+            allDateItemDtos.sort(Comparator.comparing(DateItemDto::getPriority));
+
+            if (itinerary.getImageName() != null) {
+                String signedUrl = gcsImageService.getSignedUrl(itinerary.getImageName());
+                itinerary.setCoverImageUrl(signedUrl);
+            }
+
+            InputStream imgStream = getClass().getClassLoader().getResourceAsStream("static/img/edge-fade.png");
+            byte[] imgBytes = imgStream.readAllBytes();
+            String edgeFadeUrl = "data:image/png;base64," + Base64.getEncoder().encodeToString(imgBytes);
+
+            Context context = new Context();
+            context.setVariable("itinerary", itinerary);
+            context.setVariable("dateItems", allDateItemDtos);
+            context.setVariable("edgeFadeUrl", edgeFadeUrl);
+            String html = templateEngine.process("itinerary-pdf", context);
+
+            // Clean up HTML
+            html = html.replace("&nbsp;", "&#160;");
+            html = html.replaceAll("<font size=\"(\\d+)\" color=\"([^\"]+)\">",
+                    "<span style=\"font-size: $1em; color: $2;\">");
+            html = html.replaceAll("<font color=\"([^\"]+)\" size=\"(\\d+)\">",
+                    "<span style=\"color: $1; font-size: $2em;\">");
+            html = html.replaceAll("<font size=\"(\\d+)\">",
+                    "<span style=\"font-size: $1em;\">");
+            html = html.replaceAll("<font color=\"([^\"]+)\">",
+                    "<span style=\"color: $1;\">");
+            html = html.replaceAll("</font>", "</span>");
+            html = html.replaceAll("<br>", "<br/>");
+            html = html.replaceAll("<BR>", "<br/>");
+            html = html.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
+            html = html.replace("<!doctype html>", "<!DOCTYPE html>");
+            html = html.trim();
+            if (html.startsWith("\uFEFF")) {
+                html = html.substring(1);
+            }
+
+            final String finalHtml = html;
+
+            StreamingResponseBody stream = outputStream -> {
+                try {
+                    PdfRendererBuilder builder = new PdfRendererBuilder();
+                    builder.withHtmlContent(finalHtml, null);
+                    builder.toStream(outputStream);
+                    builder.run();
+                    outputStream.flush();
+                } catch (Exception e) {
+                    System.err.println("Failed to generate PDF: " + e.getMessage());
+                    e.printStackTrace();
+                    throw new IOException("PDF generation failed", e);
+                }
+            };
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header("Content-Disposition", "inline; filename=itinerary.pdf")
+                    .body(stream);
+        } catch (Exception e) {
+            System.err.println("Error generating shared PDF: " + e.getMessage());
+            e.printStackTrace();
+            StreamingResponseBody errorStream = outputStream -> {
+                String errorMsg = "Error: Invalid or expired link";
+                outputStream.write(errorMsg.getBytes());
+            };
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(errorStream);
+        }
+    }
 }

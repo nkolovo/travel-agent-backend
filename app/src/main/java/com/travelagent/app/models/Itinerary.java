@@ -62,6 +62,8 @@ public class Itinerary {
     private String imageName;
     @Column(columnDefinition = "TEXT")
     private String notes;
+    @Column(name = "shareable_token", unique = true)
+    private String shareableToken;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
