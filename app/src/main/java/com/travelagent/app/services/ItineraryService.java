@@ -114,12 +114,15 @@ public class ItineraryService {
             }
 
             // Handle client relationship
+            Client client = null;
             if (itineraryDto.getClientName() != null) {
                 Client returningClient = clientService.getClientByName(itineraryDto.getClientName());
                 if (returningClient != null) {
+                    client = returningClient;
                     itinerary.setClient(returningClient);
                 } else {
                     Client savedClient = clientService.saveClient(new Client(itineraryDto.getClientName()));
+                    client = savedClient;
                     itinerary.setClient(savedClient);
                 }
             }
@@ -130,9 +133,34 @@ public class ItineraryService {
             }
 
             // Save the itinerary to the database
-            itineraryRepository.save(itinerary);
+            Itinerary savedItinerary = itineraryRepository.save(itinerary);
 
-            return Map.of(HttpStatus.CREATED, itinerary.getId());
+            // Parse leadName and create lead traveler
+            if (itineraryDto.getLeadName() != null && !itineraryDto.getLeadName().isEmpty()) {
+                String leadName = itineraryDto.getLeadName();
+                String[] parts = leadName.split("/");
+
+                if (parts.length == 2) {
+                    String lastName = parts[0].trim();
+                    String firstName = parts[1].trim();
+
+                    Traveler leadTraveler = new Traveler();
+                    leadTraveler.setLastName(lastName);
+                    leadTraveler.setFirstName(firstName);
+                    leadTraveler.setLead(true);
+                    leadTraveler.setItinerary(savedItinerary);
+
+                    if (client != null) {
+                        leadTraveler.setClient(client);
+                    } else {
+                        throw new RuntimeException("Client must be set to create lead traveler.");
+                    }
+
+                    travelerRepository.save(leadTraveler);
+                }
+            }
+
+            return Map.of(HttpStatus.CREATED, savedItinerary.getId());
         } catch (Exception e) {
             return Map.of(HttpStatus.INTERNAL_SERVER_ERROR, -1L);
         }
@@ -144,10 +172,17 @@ public class ItineraryService {
             Itinerary itinerary = getEntityById(itineraryId);
 
             String title = (String) updates.get("title");
+            String newLeadName = (String) updates.get("leadName");
             int tripCost = (int) updates.get("tripCost");
             int netCost = (int) updates.get("netCost");
 
+            // Handle lead name change
+            if (newLeadName != null && !newLeadName.equals(itinerary.getLeadName())) {
+                handleLeadNameChange(itinerary, newLeadName);
+            }
+
             itinerary.setName(title);
+            itinerary.setLeadName(newLeadName);
             itinerary.setTripPrice(tripCost);
             itinerary.setNetPrice(netCost);
             itinerary.setEditedDate(LocalDateTime.now());
@@ -156,6 +191,64 @@ public class ItineraryService {
             return ResponseEntity.ok("Itinerary updated successfully.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error updating itinerary: " + e.getMessage());
+        }
+    }
+
+    private void handleLeadNameChange(Itinerary itinerary, String newLeadName) {
+        // Parse new lead name
+        String[] parts = newLeadName.split("/");
+        if (parts.length != 2)
+            return;
+
+        String newLastName = parts[0].trim();
+        String newFirstName = parts[1].trim();
+
+        // Update Client name to match new lead
+        if (itinerary.getClient() != null) {
+            itinerary.getClient().setName(newLeadName);
+            clientService.saveClient(itinerary.getClient());
+        }
+
+        List<Traveler> travelers = itinerary.getTravelers();
+
+        // Find current lead traveler
+        Traveler currentLead = travelers.stream()
+                .filter(Traveler::isLead)
+                .findFirst()
+                .orElse(null);
+
+        // Check if new lead already exists as a traveler (not currently lead)
+        Traveler existingTraveler = travelers.stream()
+                .filter(t -> !t.isLead() &&
+                        t.getLastName() != null && t.getLastName().equalsIgnoreCase(newLastName) &&
+                        t.getFirstName() != null && t.getFirstName().equalsIgnoreCase(newFirstName))
+                .findFirst()
+                .orElse(null);
+
+        List<Traveler> updatedTravelers = new ArrayList<>();
+
+        if (currentLead != null) {
+            currentLead.setLead(false);
+            updatedTravelers.add(currentLead);
+            if (existingTraveler != null) {
+                // New lead already exists: promote new one
+                existingTraveler.setLead(true);
+                updatedTravelers.add(existingTraveler);
+            } else {
+                // Create new lead traveler
+                Traveler newLead = new Traveler();
+                newLead.setLastName(newLastName);
+                newLead.setFirstName(newFirstName);
+                newLead.setLead(true);
+                newLead.setItinerary(itinerary);
+                if (itinerary.getClient() != null) {
+                    newLead.setClient(itinerary.getClient());
+                }
+                updatedTravelers.add(newLead);
+            }
+            travelerRepository.saveAll(updatedTravelers);
+        } else {
+            throw new RuntimeException("No lead traveler found for itinerary ID " + itinerary.getId());
         }
     }
 
