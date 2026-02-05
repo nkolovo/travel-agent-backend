@@ -90,9 +90,38 @@ public class GcsPdfService {
         return uploadedFiles;
     }
 
+    /**
+     * Uploads PDF bytes directly to GCS, overwriting if file already exists
+     * 
+     * @param pdfBytes The PDF content as byte array
+     * @param fileName The name to save the file as
+     * @return The fileName that was uploaded
+     * @throws IOException if upload fails
+     */
+    public String uploadPdfBytes(byte[] pdfBytes, String fileName) throws IOException {
+        BlobId blobId = BlobId.of(bucketName, fileName);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                .setContentType("application/pdf")
+                .build();
+        storage.create(blobInfo, pdfBytes);
+        return fileName;
+    }
+
     public String getSignedUrl(String fileName) {
         BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
         URL url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
+        return url.toString();
+    }
+
+    /**
+     * Generates a longer-lived signed URL (7 days) for shareable links
+     * 
+     * @param fileName The file name in GCS
+     * @return The signed URL valid for 7 days
+     */
+    public String getShareableSignedUrl(String fileName) {
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
+        URL url = storage.signUrl(blobInfo, 7, TimeUnit.DAYS, Storage.SignUrlOption.withV4Signature());
         return url.toString();
     }
 
