@@ -98,7 +98,7 @@ public class ItineraryController {
         return ResponseEntity.ok("Itinerary updated successfully.");
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public void deleteItinerary(@PathVariable Long id) {
         itineraryService.deleteItinerary(id);
     }

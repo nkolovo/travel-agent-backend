@@ -9,6 +9,7 @@ import com.travelagent.app.models.DateItem;
 import com.travelagent.app.models.Itinerary;
 import com.travelagent.app.models.Traveler;
 import com.travelagent.app.models.User;
+import com.travelagent.app.repositories.DateItemRepository;
 import com.travelagent.app.repositories.DateRepository;
 import com.travelagent.app.repositories.ItineraryRepository;
 import com.travelagent.app.repositories.TravelerRepository;
@@ -39,6 +40,7 @@ public class ItineraryService {
 
     private final ItineraryRepository itineraryRepository;
     private final DateRepository dateRepository;
+    private final DateItemRepository dateItemRepository;
     private final TravelerRepository travelerRepository;
 
     @Autowired
@@ -46,11 +48,12 @@ public class ItineraryService {
 
     public ItineraryService(UserService userService, ClientService clientService,
             ItineraryRepository itineraryRepository, DateRepository dateRepository,
-            TravelerRepository travelerRepository) {
+            DateItemRepository dateItemRepository, TravelerRepository travelerRepository) {
         this.userService = userService;
         this.clientService = clientService;
         this.itineraryRepository = itineraryRepository;
         this.dateRepository = dateRepository;
+        this.dateItemRepository = dateItemRepository;
         this.travelerRepository = travelerRepository;
     }
 
@@ -278,7 +281,21 @@ public class ItineraryService {
     }
 
     public void deleteItinerary(Long id) {
-        itineraryRepository.deleteById(id);
+        try {
+            Itinerary itinerary = itineraryRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Could not find itinerary with ID " + id));
+            List<Date> itineraryDates = itinerary.getDates();
+            List<DateItem> itineraryDateItems = itineraryDates.stream()
+                    .flatMap(date -> date.getDateItems().stream())
+                    .toList();
+            dateItemRepository.deleteAll(itineraryDateItems);
+            dateRepository.deleteAll(itineraryDates);
+            travelerRepository.deleteAll(itinerary.getTravelers());
+            itineraryRepository.deleteById(id);
+            clientService.deleteClientIfOrphaned(itinerary.getClient());
+        } catch (Exception e) {
+            throw new RuntimeException("Could not delete itinerary with ID " + id + ", exception: " + e.getMessage());
+        }
     }
 
     public Date addDateToItinerary(Long itineraryId, DateDto date) {
