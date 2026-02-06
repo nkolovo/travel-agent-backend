@@ -41,8 +41,11 @@ public class SecurityConfig implements WebMvcConfigurer {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .shouldFilterAllDispatcherTypes(false) // Don't re-authorize on async/error dispatches
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll() // Allow error page (for async responses)
+                        .requestMatchers("/api/itineraries/share/**").permitAll() // Public shareable links
                         .requestMatchers("/api/users/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/clients/**", "/api/itineraries/**", "/api/dates/**", "/api/items/**",
                                 "/api/date-items/**", "/api/suppliers/**", "/api/image/**", "/api/pdf/**")

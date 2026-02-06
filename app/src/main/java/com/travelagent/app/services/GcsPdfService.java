@@ -27,7 +27,7 @@ public class GcsPdfService {
      * @param file The uploaded file
      * @return true if PDF, false otherwise
      */
-    public boolean isPdfFormat(MultipartFile file) {
+    private boolean isPdfFormat(MultipartFile file) {
         String contentType = file.getContentType();
         if (contentType == null) {
             // Try to determine from filename extension
@@ -42,7 +42,17 @@ public class GcsPdfService {
     }
 
     public boolean doesPdfExist(String fileName) {
-        Blob blob = storage.get(bucketName, fileName);
+        // If fileName doesn't contain a path, prepend appropriate subfolder
+        String fullPath = fileName;
+        if (!fileName.contains("/")) {
+            if (fileName.startsWith("itinerary-")) {
+                fullPath = "ItineraryPdfs/" + fileName;
+            } else {
+                fullPath = "AttachmentPdfs/" + fileName;
+            }
+        }
+
+        Blob blob = storage.get(bucketName, fullPath);
         return blob != null && blob.exists();
     }
 
@@ -52,14 +62,18 @@ public class GcsPdfService {
                     "Unsupported file format. Only PDF files are allowed. Received: " + file.getContentType());
         }
 
+        // Save to AttachmentPdfs subfolder
+        String fullPath = "AttachmentPdfs/" + fileName;
+
         if (doesPdfExist(fileName)) {
             throw new IllegalArgumentException("A PDF with the name '" + fileName + "' already exists.");
         }
 
-        BlobId blobId = BlobId.of(bucketName, fileName);
+        BlobId blobId = BlobId.of(bucketName, fullPath);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
         storage.create(blobInfo, file.getBytes());
-        return fileName;
+        System.out.println("Uploaded PDF to GCS: " + fullPath);
+        return fullPath;
     }
 
     public Set<String> uploadMultiplePdfs(MultipartFile[] files, String[] fileNames) throws IOException {
@@ -81,10 +95,13 @@ public class GcsPdfService {
             MultipartFile file = files[i];
             String fileName = fileNames[i];
 
-            BlobId blobId = BlobId.of(bucketName, fileName);
+            // Save to AttachmentPdfs subfolder
+            String fullPath = "AttachmentPdfs/" + fileName;
+
+            BlobId blobId = BlobId.of(bucketName, fullPath);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(file.getContentType()).build();
             storage.create(blobInfo, file.getBytes());
-            uploadedFiles.add(fileName);
+            uploadedFiles.add(fullPath);
         }
 
         return uploadedFiles;
@@ -99,29 +116,26 @@ public class GcsPdfService {
      * @throws IOException if upload fails
      */
     public String uploadPdfBytes(byte[] pdfBytes, String fileName) throws IOException {
-        BlobId blobId = BlobId.of(bucketName, fileName);
+        // Save to ItineraryPdfs subfolder
+        String fullPath = "ItineraryPdfs/" + fileName;
+
+        BlobId blobId = BlobId.of(bucketName, fullPath);
         BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
                 .setContentType("application/pdf")
                 .build();
         storage.create(blobInfo, pdfBytes);
-        return fileName;
+        return fullPath;
     }
 
     public String getSignedUrl(String fileName) {
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
-        URL url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
-        return url.toString();
-    }
+        // If fileName doesn't contain a path, prepend AttachmentPdfs/
+        String fullPath = fileName;
+        if (!fileName.contains("/")) {
+            fullPath = "AttachmentPdfs/" + fileName;
+        }
 
-    /**
-     * Generates a longer-lived signed URL (7 days) for shareable links
-     * 
-     * @param fileName The file name in GCS
-     * @return The signed URL valid for 7 days
-     */
-    public String getShareableSignedUrl(String fileName) {
-        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fileName).build();
-        URL url = storage.signUrl(blobInfo, 7, TimeUnit.DAYS, Storage.SignUrlOption.withV4Signature());
+        BlobInfo blobInfo = BlobInfo.newBuilder(bucketName, fullPath).build();
+        URL url = storage.signUrl(blobInfo, 15, TimeUnit.MINUTES, Storage.SignUrlOption.withV4Signature());
         return url.toString();
     }
 

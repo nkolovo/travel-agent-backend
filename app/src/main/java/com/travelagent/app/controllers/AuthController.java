@@ -78,7 +78,10 @@ public class AuthController {
         return Map.of(
                 "token", token,
                 "role", roleName,
-                "username", dbUser.getUsername());
+                "username", dbUser.getUsername(),
+                "email", dbUser.getEmail(),
+                "fullName", dbUser.getFullName(),
+                "phoneNumber", dbUser.getPhoneNumber());
     }
 
     @PostMapping("/logout")

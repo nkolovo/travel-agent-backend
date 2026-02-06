@@ -453,8 +453,6 @@ public class ItineraryService {
             client.setEmail(traveler.getEmail());
             client.setPhone(traveler.getPhone());
             clientService.saveClient(client);
-        } else {
-            throw new RuntimeException("Client must be set to update lead traveler.");
         }
 
         if (!existingTraveler)
