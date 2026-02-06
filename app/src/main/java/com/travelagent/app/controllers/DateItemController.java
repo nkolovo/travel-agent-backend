@@ -28,15 +28,15 @@ public class DateItemController {
             @RequestParam(name = "file", required = false) MultipartFile file,
             @RequestParam(name = "pdf", required = false) MultipartFile pdfFile,
             @RequestParam(name = "document", required = false) MultipartFile document) {
-        
+
         System.out.println("=== PDF UPLOAD REQUEST DEBUG ===");
         System.out.println("file parameter: " + (file != null ? file.getOriginalFilename() : "null"));
         System.out.println("pdf parameter: " + (pdfFile != null ? pdfFile.getOriginalFilename() : "null"));
         System.out.println("document parameter: " + (document != null ? document.getOriginalFilename() : "null"));
-        
+
         try {
             MultipartFile fileToUpload = null;
-            
+
             if (file != null && !file.isEmpty()) {
                 fileToUpload = file;
             } else if (pdfFile != null && !pdfFile.isEmpty()) {
@@ -44,7 +44,7 @@ public class DateItemController {
             } else if (document != null && !document.isEmpty()) {
                 fileToUpload = document;
             }
-            
+
             if (fileToUpload == null) {
                 System.out.println("No file received in any parameter");
                 return ResponseEntity.badRequest()
@@ -53,6 +53,7 @@ public class DateItemController {
 
             System.out.println("Processing file: " + fileToUpload.getOriginalFilename());
             String fileName = dateItemService.uploadPdfForDateItem(fileToUpload);
+            System.out.println("File uploaded successfully: " + fileName);
             return ResponseEntity.ok(fileName);
         } catch (Exception e) {
             System.out.println("Error in upload: " + e.getMessage());
