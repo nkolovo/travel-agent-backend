@@ -1,29 +1,46 @@
 steps:
   # Build the Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest', '.']
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/vital-defender-436715-h2/travel-agent-backend:latest",
+        ".",
+      ]
 
   # Push the image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest']
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      ["push", "gcr.io/vital-defender-436715-h2/travel-agent-backend:latest"]
 
   # Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'travel-agent-app',
-        '--image', 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest',
-        '--region', 'europe-west8',
-        '--platform', 'managed',
-        '--allow-unauthenticated',
-        '--timeout', '300',
-        '--memory', '2Gi',
-        '--cpu', '2'
+        "run",
+        "deploy",
+        "travel-agent-app",
+        "--image",
+        "gcr.io/vital-defender-436715-h2/travel-agent-backend:latest",
+        "--region",
+        "europe-west8",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--timeout",
+        "300",
+        "--memory",
+        "2Gi",
+        "--cpu",
+        "2",
+        "--set-env-vars",
+        "BACKEND_URL=https://travel-agent-app-421736167284.europe-west8.run.app",
       ]
 
 images:
-  - 'gcr.io/vital-defender-436715-h2/travel-agent-backend:latest'
+  - "gcr.io/vital-defender-436715-h2/travel-agent-backend:latest"
 
 options:
   logging: CLOUD_LOGGING_ONLY

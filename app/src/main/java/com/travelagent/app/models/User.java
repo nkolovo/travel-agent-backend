@@ -23,6 +23,9 @@ public class User implements UserDetails {
     private Long id;
     private String username;
     private String password;
+    private String email;
+    private String fullName;
+    private String phoneNumber;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
@@ -46,6 +49,18 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
     @Override

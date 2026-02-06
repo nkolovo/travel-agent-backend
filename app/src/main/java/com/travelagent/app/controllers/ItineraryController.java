@@ -156,110 +156,100 @@ public class ItineraryController {
         itineraryService.removeTravelerFromItinerary(itineraryId, travelerId);
     }
 
+    /**
+     * Helper method to generate cleaned HTML for PDF rendering
+     * 
+     * @param id The itinerary ID
+     * @return Cleaned HTML string ready for PDF conversion
+     * @throws Exception if HTML generation fails
+     */
+    private String generatePdfHtml(Long id) throws Exception {
+        ItineraryDto itinerary = itineraryService.getItineraryById(id);
+        List<DateDto> dates = new ArrayList<>(itinerary.getDates());
+        dates.sort(Comparator.comparing(DateDto::getDate));
+        itinerary.setDates(dates);
+
+        // Collect all DateItemDtos for all dates in the itinerary
+        List<DateItemDto> allDateItemDtos = new ArrayList<>();
+        for (DateDto date : dates) {
+            List<DateItemDto> dateItems = dateItemService.getDateItemsByDate(date.getId());
+            for (DateItemDto dto : dateItems) {
+                if (dto.getImageNames() != null && !dto.getImageNames().isEmpty()) {
+                    for (String imageName : dto.getImageNames()) {
+                        try {
+                            String signedUrl = gcsImageService.getSignedUrl(imageName);
+                            dto.getImageUrls().add(signedUrl);
+                        } catch (Exception e) {
+                            System.err.println("Warning: Failed to generate signed URL for image: " + imageName);
+                        }
+                    }
+                }
+
+                if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
+                    try {
+                        String pdfSignedUrl = gcsPdfService.getSignedUrl(dto.getPdfName());
+                        dto.setPdfUrl(pdfSignedUrl);
+                    } catch (Exception e) {
+                        System.err.println("Warning: Failed to generate signed URL for PDF: " + dto.getPdfName());
+                    }
+                }
+
+                allDateItemDtos.add(dto);
+            }
+        }
+        allDateItemDtos.sort(Comparator.comparing(DateItemDto::getPriority));
+
+        if (itinerary.getImageName() != null) {
+            String signedUrl = gcsImageService.getSignedUrl(itinerary.getImageName());
+            itinerary.setCoverImageUrl(signedUrl);
+        }
+
+        InputStream imgStream = getClass().getClassLoader().getResourceAsStream("static/img/edge-fade.png");
+        byte[] imgBytes = imgStream.readAllBytes();
+        String edgeFadeUrl = "data:image/png;base64," + Base64.getEncoder().encodeToString(imgBytes);
+
+        // Render Thymeleaf template to HTML
+        Context context = new Context();
+        context.setVariable("itinerary", itinerary);
+        context.setVariable("dateItems", allDateItemDtos);
+        context.setVariable("edgeFadeUrl", edgeFadeUrl);
+        String html = templateEngine.process("itinerary-pdf", context);
+
+        // Clean up HTML for XML parsing
+        html = html.replace("&nbsp;", "&#160;");
+        html = html.replaceAll("<font size=\"(\\d+)\" color=\"([^\"]+)\">",
+                "<span style=\"font-size: $1em; color: $2;\">");
+        html = html.replaceAll("<font color=\"([^\"]+)\" size=\"(\\d+)\">",
+                "<span style=\"color: $1; font-size: $2em;\">");
+        html = html.replaceAll("<font size=\"(\\d+)\">",
+                "<span style=\"font-size: $1em;\">");
+        html = html.replaceAll("<font color=\"([^\"]+)\">",
+                "<span style=\"color: $1;\">");
+        html = html.replaceAll("</font>", "</span>");
+        html = html.replaceAll("<br>", "<br/>");
+        html = html.replaceAll("<BR>", "<br/>");
+        html = html.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
+        html = html.replace("<!doctype html>", "<!DOCTYPE html>");
+        html = html.trim();
+        if (html.startsWith("\uFEFF")) {
+            html = html.substring(1);
+        }
+
+        return html;
+    }
+
     @GetMapping("generate-pdf/{id}")
     public ResponseEntity<StreamingResponseBody> getPdf(@PathVariable Long id,
             @RequestParam(required = false, defaultValue = "false") boolean preview) {
         System.out.println("=== getPdf called: id=" + id + ", preview=" + preview + " ===");
         try {
-            ItineraryDto itinerary = itineraryService.getItineraryById(id);
-            List<DateDto> dates = new ArrayList<>(itinerary.getDates());
-            dates.sort(Comparator.comparing(DateDto::getDate));
-            itinerary.setDates(dates);
-
-            // Collect all DateItemDtos for all dates in the itinerary
-            List<DateItemDto> allDateItemDtos = new ArrayList<>();
-            for (DateDto date : dates) {
-                List<DateItemDto> dateItems = dateItemService.getDateItemsByDate(date.getId());
-                for (DateItemDto dto : dateItems) {
-                    if (dto.getImageNames() != null && !dto.getImageNames().isEmpty()) {
-                        // Generate signed URLs for all images
-                        for (String imageName : dto.getImageNames()) {
-                            try {
-                                String signedUrl = gcsImageService.getSignedUrl(imageName);
-                                dto.getImageUrls().add(signedUrl);
-                            } catch (Exception e) {
-                                System.err.println(
-                                        "Warning: Failed to generate signed URL for image: " + imageName + " - "
-                                                + e.getMessage());
-                                // Continue processing other images instead of failing completely
-                            }
-                        }
-                    }
-
-                    // Generate signed URL for PDF if it exists
-                    if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
-                        try {
-                            String pdfSignedUrl = gcsPdfService.getSignedUrl(dto.getPdfName());
-                            dto.setPdfUrl(pdfSignedUrl);
-                            System.out.println("Generated signed URL for PDF: " + dto.getPdfName());
-                        } catch (Exception e) {
-                            System.err.println(
-                                    "Warning: Failed to generate signed URL for PDF: " + dto.getPdfName() + " - "
-                                            + e.getMessage());
-                            // Continue processing instead of failing completely
-                        }
-                    }
-
-                    allDateItemDtos.add(dto);
-                }
-            }
-            allDateItemDtos.sort(Comparator.comparing(DateItemDto::getPriority));
-
-            // Set signed URL for itinerary image
-            if (itinerary.getImageName() != null) {
-                String signedUrl = gcsImageService.getSignedUrl(itinerary.getImageName());
-                itinerary.setCoverImageUrl(signedUrl);
-            }
-
-            InputStream imgStream = getClass().getClassLoader().getResourceAsStream("static/img/edge-fade.png");
-            byte[] imgBytes = imgStream.readAllBytes();
-            String edgeFadeUrl = "data:image/png;base64," + Base64.getEncoder().encodeToString(imgBytes);
-
-            // Render Thymeleaf template to HTML
-            Context context = new Context();
-            context.setVariable("itinerary", itinerary);
-            context.setVariable("dateItems", allDateItemDtos);
-            context.setVariable("edgeFadeUrl", edgeFadeUrl);
-            String html = templateEngine.process("itinerary-pdf", context);
-
-            // Clean up HTML for XML parsing
-            html = html.replace("&nbsp;", "&#160;");
-
-            // Convert deprecated font tags to CSS spans for better PDF rendering
-            html = html.replaceAll("<font size=\"(\\d+)\" color=\"([^\"]+)\">",
-                    "<span style=\"font-size: $1em; color: $2;\">");
-            html = html.replaceAll("<font color=\"([^\"]+)\" size=\"(\\d+)\">",
-                    "<span style=\"color: $1; font-size: $2em;\">");
-            html = html.replaceAll("<font size=\"(\\d+)\">",
-                    "<span style=\"font-size: $1em;\">");
-            html = html.replaceAll("<font color=\"([^\"]+)\">",
-                    "<span style=\"color: $1;\">");
-            html = html.replaceAll("</font>", "</span>");
-
-            // Fix unclosed BR tags for XML compliance
-            html = html.replaceAll("<br>", "<br/>");
-            html = html.replaceAll("<BR>", "<br/>");
-
-            // Normalize line breaks
-            html = html.replaceAll("\\r\\n", "\n").replaceAll("\\r", "\n");
-
-            // Fix DOCTYPE case - OpenHTMLToPDF requires uppercase DOCTYPE
-            html = html.replace("<!doctype html>", "<!DOCTYPE html>");
-
-            // Ensure proper XML structure - remove any BOM or invisible characters
-            html = html.trim();
-            if (html.startsWith("\uFEFF")) {
-                html = html.substring(1); // Remove BOM
-            }
-
-            // Convert HTML to PDF using streaming to avoid Cloud Run response size limits
-            final String finalHtml = html;
+            String html = generatePdfHtml(id);
             String disposition = preview ? "inline" : "attachment";
 
             StreamingResponseBody stream = outputStream -> {
                 try {
                     PdfRendererBuilder builder = new PdfRendererBuilder();
-                    builder.withHtmlContent(finalHtml, null);
+                    builder.withHtmlContent(html, null);
                     builder.toStream(outputStream);
                     builder.run();
                     outputStream.flush();
@@ -287,9 +277,58 @@ public class ItineraryController {
         }
     }
 
-    // @PostMapping("generate-shareable-link/{id}")
-    // public String generateShareableLink(@PathVariable Long id) {
-    // String token = itineraryService.generateShareableToken(id);
-    // return "/shared/itinerary/" + token;
-    // }
+    @PostMapping("generate-shareable-link/{id}")
+    public ResponseEntity<Map<String, String>> generateShareableLink(@PathVariable Long id) {
+        try {
+            String html = generatePdfHtml(id);
+
+            // Convert HTML to PDF bytes
+            java.io.ByteArrayOutputStream pdfOutputStream = new java.io.ByteArrayOutputStream();
+            PdfRendererBuilder builder = new PdfRendererBuilder();
+            builder.withHtmlContent(html, null);
+            builder.toStream(pdfOutputStream);
+            builder.run();
+            byte[] pdfBytes = pdfOutputStream.toByteArray();
+
+            // Upload to GCS (overwrites if exists) - returns full path including subfolder
+            String fileName = "itinerary-" + id + ".pdf";
+            String fullPath = gcsPdfService.uploadPdfBytes(pdfBytes, fileName);
+
+            // Generate permanent share URL (backend endpoint that never expires)
+            String backendUrl = System.getenv("BACKEND_URL");
+            if (backendUrl == null || backendUrl.isEmpty()) {
+                backendUrl = "http://localhost:8080";
+            }
+            String shareableUrl = backendUrl + "/api/itineraries/share/" + id;
+
+            return ResponseEntity.ok(Map.of(
+                    "shareableUrl", shareableUrl,
+                    "fileName", fullPath));
+        } catch (Exception e) {
+            System.err.println("Failed to generate shareable link: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to generate shareable link: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/share/{id}")
+    public ResponseEntity<Void> shareItinerary(@PathVariable Long id) {
+        try {
+            // Construct full path to PDF in GCS (ItineraryPdfs subfolder)
+            String fullPath = "ItineraryPdfs/itinerary-" + id + ".pdf";
+            
+            // Generate a fresh signed URL (15 minutes is fine for immediate redirect)
+            String signedUrl = gcsPdfService.getSignedUrl(fullPath);
+            
+            // Redirect to the signed URL
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(java.net.URI.create(signedUrl))
+                    .build();
+        } catch (Exception e) {
+            System.err.println("Failed to redirect to shared PDF: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 }
