@@ -53,7 +53,6 @@ public class DateItemController {
 
             System.out.println("Processing file: " + fileToUpload.getOriginalFilename());
             String fileName = dateItemService.uploadPdfForDateItem(fileToUpload);
-            System.out.println("File uploaded successfully: " + fileName);
             return ResponseEntity.ok(fileName);
         } catch (Exception e) {
             System.out.println("Error in upload: " + e.getMessage());
