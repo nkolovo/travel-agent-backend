@@ -113,9 +113,14 @@
         margin: 26px 0 34px 0;
       }
 
+      .section + .section {
+        page-break-before: always;
+        break-before: page;
+      }
+
       .date-header {
         position: relative;
-        font-size: 18px;
+        font-size: 24px;
         font-weight: 700;
         margin: 24px 0 14px;
         padding-bottom: 0;
@@ -140,6 +145,12 @@
         border-radius: 12px;
         background: #fff;
       }
+
+      .dateitem + .dateitem {
+        page-break-before: always;
+        break-before: page;
+      }
+
       .dateitem h3 {
         position: relative;
         font-size: 18px;
@@ -148,14 +159,18 @@
         border-left: 3px solid #4a90e2; /* narrow colored bar */
       }
       .dateitem-image {
-        width: 240px;
-        height: 160px;
+        height: 350px;
         max-width: 100%;
-        margin: 6px 12px 10px 0;
         border-radius: 10px;
         object-fit: cover;
         object-position: center;
         display: inline-block;
+        margin: 10px auto 0 auto;
+      }
+
+      .dateitem-image-container {
+        text-align: center;
+        width: 100%;
       }
 
       .pdf-link-container {
@@ -391,6 +406,7 @@
         </div>
         <div
           th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}"
+          class="dateitem-image-container"
         >
           <img
             th:each="imageUrl : ${dateItem.imageUrls}"
