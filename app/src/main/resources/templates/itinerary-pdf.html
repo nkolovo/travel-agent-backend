@@ -32,7 +32,7 @@
           "Segoe UI Emoji";
         color: var(--text);
         margin: 0 auto;
-        padding: 40px 28px;
+        padding: 40px 28px 70px 28px;
         max-width: 960px;
         line-height: 1.5;
       }
@@ -182,29 +182,89 @@
       }
 
       .disclaimer-header {
-        display: none;
+        display: block;
+        position: running(header);
+        background: white;
+        font-size: 11px;
+        font-style: italic;
+        color: #374151;
+        text-align: center;
+        padding: 8px 15px;
+        border-bottom: 1px solid #e5e7eb;
+        line-height: 1.2;
+      }
+
+      .page-footer {
+        display: table;
+        position: running(footer);
+        padding: 8px 0;
+        border-top: 1px solid #e5e7eb;
+        background: white;
+        font-size: 11px;
+        color: #374151;
+        width: 100%;
+        table-layout: fixed;
+      }
+
+      .page-footer .footer-left {
+        display: table-cell;
+        width: 33.33%;
+        text-align: left;
+        vertical-align: middle;
+        padding-left: 0;
+      }
+
+      .page-footer .footer-logo {
+        height: 30px;
+        width: auto;
+        vertical-align: middle;
+      }
+
+      .page-footer .footer-center {
+        display: table-cell;
+        width: 33.34%;
+        text-align: center;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
+
+      .page-footer .footer-center span {
+        display: inline;
+        margin: 0 5px;
+      }
+
+      .page-footer .footer-right {
+        display: table-cell;
+        width: 33.33%;
+        text-align: right;
+        vertical-align: middle;
+        padding-right: 0;
+      }
+
+      .page-footer .page-number::after {
+        content: counter(page);
+      }
+
+      @page {
+        margin-bottom: 50px;
+        margin-left: 20px;
+        margin-right: 20px;
+        @top-center {
+          content: element(header);
+        }
+        @bottom-center {
+          content: element(footer);
+        }
       }
 
       @media print {
-        .disclaimer-header {
-          display: block;
-          position: relative;
-          background: white;
-          font-size: 9px;
-          font-style: italic;
-          color: #374151;
-          text-align: center;
-          padding: 8px 15px;
-          border-bottom: 1px solid #e5e7eb;
-          line-height: 1.2;
-          margin: -10px -20px 10px -20px;
-        }
-
         body {
           padding-top: 5px;
           padding-left: 20px;
           padding-right: 20px;
+          padding-bottom: 100px;
         }
+
         .info-row {
           border-color: #d1d5db;
         }
@@ -220,20 +280,38 @@
     </style>
   </head>
   <body>
+    <!-- Page Footer -->
+    <div class="page-footer">
+      <div class="footer-left">
+        <a
+          th:if="${companyLogoUrl != null}"
+          href="https://www.personally.travel"
+          target="_blank"
+        >
+          <img
+            th:src="${companyLogoUrl}"
+            class="footer-logo"
+            alt="Company Logo"
+          />
+        </a>
+      </div>
+      <div
+        class="footer-center"
+        th:text="${(user != null and user.fullName != null ? user.fullName : '') + (user != null and user.email != null ? ' | ' + user.email : '') + (user != null and user.phoneNumber != null ? ' | ' + user.phoneNumber : '')}"
+      >
+        Agent Name | Agent Email | Agent Phone Number
+      </div>
+      <div class="footer-right">
+        <span class="page-number">Page </span>
+      </div>
+    </div>
+
     <!-- Disclaimer Header -->
     <div class="disclaimer-header">
       Suggested hotels and room types available at time of presentation. Subject
       to change until trip package is reserved. Cost of local flight and ferry
       tickets subject to change until package is reserved.
     </div>
-
-    <!-- Company Logo -->
-    <img
-      th:if="${companyLogoUrl != null}"
-      th:src="${companyLogoUrl}"
-      class="company-logo"
-      alt="Company Logo"
-    />
 
     <div class="header">
       <h1 th:text="${itinerary.name}">Itinerary Name</h1>

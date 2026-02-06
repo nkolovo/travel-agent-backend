@@ -1,5 +1,6 @@
 package com.travelagent.app.controllers;
 
+import com.travelagent.app.models.User;
 import com.travelagent.app.models.Date;
 import com.travelagent.app.models.Traveler;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
@@ -32,10 +33,6 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/api/itineraries")
@@ -43,6 +40,7 @@ public class ItineraryController {
 
     private final ItineraryService itineraryService;
     private final DateItemService dateItemService;
+    private final UserService userService;
 
     @Autowired
     private GcsImageService gcsImageService;
@@ -52,8 +50,9 @@ public class ItineraryController {
     private SpringTemplateEngine templateEngine;
 
     public ItineraryController(ItineraryService itineraryService, UserService userService,
-            ClientService clientService, DateItemService dateItemService) {
+            DateItemService dateItemService) {
         this.itineraryService = itineraryService;
+        this.userService = userService;
         this.dateItemService = dateItemService;
     }
 
@@ -165,6 +164,7 @@ public class ItineraryController {
      */
     private String generatePdfHtml(Long id) throws Exception {
         ItineraryDto itinerary = itineraryService.getItineraryById(id);
+        User user = userService.getUserByUsername(itinerary.getAgent());
         List<DateDto> dates = new ArrayList<>(itinerary.getDates());
         dates.sort(Comparator.comparing(DateDto::getDate));
         itinerary.setDates(dates);
@@ -210,8 +210,11 @@ public class ItineraryController {
 
         // Render Thymeleaf template to HTML
         Context context = new Context();
+        String companyLogoUrl = gcsImageService.getSignedUrl("logo-tag.jpg");
+        context.setVariable("companyLogoUrl", companyLogoUrl);
         context.setVariable("itinerary", itinerary);
         context.setVariable("dateItems", allDateItemDtos);
+        context.setVariable("user", user);
         context.setVariable("edgeFadeUrl", edgeFadeUrl);
         String html = templateEngine.process("itinerary-pdf", context);
 
@@ -317,10 +320,10 @@ public class ItineraryController {
         try {
             // Construct full path to PDF in GCS (ItineraryPdfs subfolder)
             String fullPath = "ItineraryPdfs/itinerary-" + id + ".pdf";
-            
+
             // Generate a fresh signed URL (15 minutes is fine for immediate redirect)
             String signedUrl = gcsPdfService.getSignedUrl(fullPath);
-            
+
             // Redirect to the signed URL
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(java.net.URI.create(signedUrl))

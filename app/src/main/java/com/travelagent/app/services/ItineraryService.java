@@ -535,5 +535,4 @@ public class ItineraryService {
         ItineraryDto dto = getItineraryById(itinerary.getId());
         return dto;
     }
-
 }
