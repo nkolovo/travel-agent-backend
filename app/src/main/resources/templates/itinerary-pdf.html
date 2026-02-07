@@ -159,18 +159,15 @@
         border-left: 3px solid #4a90e2; /* narrow colored bar */
       }
       .dateitem-image {
-        height: 350px;
+        max-height: 450px;
         max-width: 100%;
+        width: auto;
+        height: auto;
         border-radius: 10px;
-        object-fit: cover;
+        object-fit: contain;
         object-position: center;
-        display: inline-block;
-        margin: 10px auto 0 auto;
-      }
-
-      .dateitem-image-container {
-        text-align: center;
-        width: 100%;
+        display: block;
+        margin: 0;
       }
 
       .pdf-link-container {
@@ -194,6 +191,17 @@
 
       .dateitem .description {
         margin-top: 6px;
+      }
+
+      .dateitem-content {
+        overflow: hidden;
+      }
+
+      .dateitem-image-container {
+        float: right;
+        max-width: 50%;
+        margin-left: 16px;
+        margin-bottom: 10px;
       }
 
       .disclaimer-header {
@@ -401,19 +409,21 @@
             </a>
           </div>
         </div>
-        <div class="description" th:utext="${dateItem.description}">
-          DateItem Description
-        </div>
-        <div
-          th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}"
-          class="dateitem-image-container"
-        >
-          <img
-            th:each="imageUrl : ${dateItem.imageUrls}"
-            th:src="${imageUrl}"
-            class="dateitem-image"
-            alt="DateItem Image"
-          />
+        <div class="dateitem-content">
+          <div
+            th:if="${dateItem.imageUrls != null and !dateItem.imageUrls.isEmpty()}"
+            class="dateitem-image-container"
+          >
+            <img
+              th:each="imageUrl : ${dateItem.imageUrls}"
+              th:src="${imageUrl}"
+              class="dateitem-image"
+              alt="DateItem Image"
+            />
+          </div>
+          <div class="description" th:utext="${dateItem.description}">
+            DateItem Description
+          </div>
         </div>
       </div>
     </div>
