@@ -186,6 +186,7 @@ public class DateService {
 
                 // Handle priority changes
                 final Short originalPriority = existingDateItem.getPriority();
+                System.out.println(originalPriority);
                 if (originalPriority != null && dateItemDto.getPriority() != null
                         && !originalPriority.equals(dateItemDto.getPriority())) {
                     List<DateItem> prioritiesToUpdate = dateItemRepository.findByDateId(date.getId()).stream()
@@ -197,6 +198,8 @@ public class DateService {
 
                     for (DateItem di : prioritiesToUpdate) {
                         di.setPriority((short) (di.getPriority() + 1));
+                        System.out
+                                .println("Updating priority for DateItem ID " + di.getId() + " to " + di.getPriority());
                     }
                     dateItemRepository.saveAll(prioritiesToUpdate);
                 }
@@ -207,10 +210,49 @@ public class DateService {
                 throw new RuntimeException("DateItem with ID " + dateItemDto.getId() + " not found");
             }
         } else {
-            throw new RuntimeErrorException(new Error("DateItem not found"));
+            throw new RuntimeException("DateItem not found");
         }
 
         dateItemRepository.save(dateItem);
+    }
+
+    public void moveActivityToDate(Long activityId, Long targetDateId) {
+        Optional<DateItem> dateItemOpt = dateItemRepository.findById(activityId);
+        Optional<Date> targetDateOpt = dateRepository.findById(targetDateId);
+
+        if (dateItemOpt.isEmpty()) {
+            throw new RuntimeException("DateItem with ID " + activityId + " not found!");
+        }
+        if (targetDateOpt.isEmpty()) {
+            throw new RuntimeException("Target Date with ID " + targetDateId + " not found!");
+        }
+
+        DateItem dateItem = dateItemOpt.get();
+        Date originalDate = dateItem.getDate();
+        Date targetDate = targetDateOpt.get();
+
+        // Update the Date reference in the DateItem
+        dateItem.setDate(targetDate);
+        dateItemRepository.save(dateItem);
+
+        Set<DateItem> targetDateItems = targetDate.getDateItems();
+        // set priority to 1 if target date has no items, otherwise set to max priority
+        // + 1
+        Short newPriority = 1;
+        if (!targetDateItems.isEmpty()) {
+            newPriority = (short) (targetDateItems.stream()
+                    .map(DateItem::getPriority)
+                    .max(Short::compare)
+                    .orElse((short) 0) + 1);
+        }
+        dateItem.setPriority(newPriority);
+
+        // Remove from original date's list and add to target date's list
+        originalDate.getDateItems().remove(dateItem);
+        targetDate.getDateItems().add(dateItem);
+
+        // Save both dates
+        dateRepository.saveAll(List.of(originalDate, targetDate));
     }
 
     public void removeItemFromDate(Long dateItemId) {
