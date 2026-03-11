@@ -39,65 +39,105 @@
 
       /* ---------- Header ---------- */
       .company-logo {
-        width: 160px;
+        width: 85px;
         max-width: 100%;
         height: auto;
         display: block;
-        margin: 0 auto 24px auto;
+        margin: 0 0 16px 0;
       }
 
       .header {
         text-align: center;
-        margin-bottom: 26px;
+        margin-bottom: 30px;
       }
       .header h1 {
-        margin: 0 0 14px 0;
+        margin: 0 0 20px 0;
         font-size: 32px;
         line-height: 1.2;
         letter-spacing: -0.01em;
       }
       .main-image {
-        width: 420px;
-        max-width: 100%;
-        height: auto;
+        width: 100%;
+        max-width: 700px;
+        height: 350px;
         border-radius: 12px;
         display: inline-block;
-        margin: 0 auto 16px auto;
+        margin: 0 auto 20px auto;
+        object-fit: cover;
       }
 
       .info-row {
-        text-align: center;
-        margin: 8px auto 10px auto;
-        padding: 12px 14px;
-        max-width: 880px;
+        display: table;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        table-layout: fixed;
+        border-spacing: 20px 0;
       }
-      .info-row {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      .info-item {
-        display: inline-block;
-        vertical-align: middle;
-        margin: 5px 5px;
-        padding: 10px 10px;
-        border-radius: 50px;
-        background: #70a7df;
+      .info-section {
+        display: table-cell;
+        width: 50%;
+        padding: 24px 26px;
+        background: #fefce8;
+        border: 1px solid #fef3c7;
+        border-radius: 8px;
+        vertical-align: top;
       }
       .info-item {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 1px;
+        text-align: left;
+        padding: 0;
+        margin-bottom: 18px;
+        background: none;
+        border: none;
+        border-radius: 0;
+      }
+      .info-item:last-child {
+        margin-bottom: 0;
       }
       .info-item .label {
+        display: block;
         font-weight: 600;
-        color: white;
-        white-space: nowrap;
-        margin-right: 4px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 4px;
       }
       .info-item .value {
-        color: #111827;
-        white-space: nowrap;
+        display: block;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      .company-info {
+        display: table-cell;
+        width: 50%;
+        text-align: left;
+        padding: 24px 26px;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
+        border-radius: 8px;
+        vertical-align: top;
+      }
+      .company-info h2 {
+        margin: 0 0 18px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .company-info p {
+        margin: 10px 0;
+        font-size: 16px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+      .company-info p:first-of-type {
+        margin-top: 0;
+      }
+      .company-info a {
+        color: #4a90e2;
+        text-decoration: none;
       }
 
       @media (max-width: 560px) {
@@ -111,9 +151,6 @@
 
       .section {
         margin: 26px 0 34px 0;
-      }
-
-      .section + .section {
         page-break-before: always;
         break-before: page;
       }
@@ -144,11 +181,6 @@
         border: 1px solid var(--border);
         border-radius: 12px;
         background: #fff;
-      }
-
-      .dateitem + .dateitem {
-        page-break-before: always;
-        break-before: page;
       }
 
       .dateitem h3 {
@@ -288,9 +320,6 @@
           padding-bottom: 100px;
         }
 
-        .info-row {
-          border-color: #d1d5db;
-        }
         .dateitem,
         .date-header {
           break-inside: avoid;
@@ -337,8 +366,6 @@
     </div>
 
     <div class="header">
-      <h1 th:text="${itinerary.name}">Itinerary Name</h1>
-
       <img
         th:if="${itinerary.coverImageUrl != null}"
         th:src="${itinerary.coverImageUrl}"
@@ -346,42 +373,110 @@
         alt="Itinerary Image"
       />
 
+      <h1 th:text="${itinerary.name}">Itinerary Name</h1>
+
       <div class="info-row">
-        <div class="info-item" th:if="${itinerary.agent != null}">
-          <span class="label">Agent</span>
-          <span class="value" th:text="${itinerary.agent}">Agent Name</span>
-        </div>
-        <div class="info-item" th:if="${itinerary.reservationNumber != null}">
-          <span class="label">Reservation #</span>
-          <span class="value" th:text="${itinerary.reservationNumber}"
-            >PG000000</span
+        <div class="company-info">
+          <img
+            th:if="${companyLogoUrl != null}"
+            th:src="${companyLogoUrl}"
+            class="company-logo"
+            alt="Company Logo"
+          />
+          <h2>Personally Travel</h2>
+          <p>
+            <span>Your itinerary was personally crafted by </span>
+            <span
+              th:if="${user != null and user.fullName != null}"
+              th:text="${user.fullName}"
+            >
+              Agent Name
+            </span>
+          </p>
+          <p th:if="${user != null and user.email != null}">
+            <a th:href="'mailto:' + ${user.email}" th:text="${user.email}"
+              >agent@example.com</a
+            >
+          </p>
+          <p
+            th:if="${user != null and user.phoneNumber != null}"
+            th:text="${user.phoneNumber}"
           >
+            +1 (555) 123-4567
+          </p>
+          <p style="margin-top: 18px">
+            <a href="https://www.personally.travel" target="_blank"
+              >www.personally.travel</a
+            >
+          </p>
         </div>
-        <div class="info-item" th:if="${itinerary.numTravelers != null}">
-          <span class="label">Travelers</span>
-          <span class="value" th:utext="${itinerary.numTravelers}">2</span>
-        </div>
-        <div class="info-item" th:if="${itinerary.arrivalDate != null}">
-          <span class="label">Arrival</span>
-          <span
-            class="value"
-            th:text="${#temporals.format(itinerary.arrivalDate, 'MMMM d, yyyy')}"
-            >January 1, 2026</span
+
+        <div class="info-section">
+          <div class="info-item" th:if="${itinerary.reservationNumber != null}">
+            <span class="label">Reservation #</span>
+            <span class="value" th:text="${itinerary.reservationNumber}"
+              >PG000000</span
+            >
+          </div>
+          <div class="info-item" th:if="${itinerary.leadName != null}">
+            <span class="label">Lead Name</span>
+            <span class="value" th:text="${itinerary.leadName}">Lead Name</span>
+          </div>
+          <div
+            class="info-item"
+            th:if="${travelers != null and !travelers.isEmpty()}"
           >
-        </div>
-        <div class="info-item" th:if="${itinerary.departureDate != null}">
-          <span class="label">Departure</span>
-          <span
-            class="value"
-            th:text="${#temporals.format(itinerary.departureDate, 'MMMM d, yyyy')}"
-            >January 1, 2026</span
+            <span class="label">
+              Travelers (<span th:text="${itinerary.numTravelers}">4</span>)
+            </span>
+            <div class="value" style="line-height: 1.6">
+              <div th:each="traveler, iterStat : ${travelers}">
+                <span th:text="${traveler.firstName + ' ' + traveler.lastName}"
+                  >John Doe</span
+                >
+                <span
+                  th:if="${traveler.isLead}"
+                  style="color: #6b7280; font-size: 14px"
+                >
+                  (Lead)</span
+                >
+              </div>
+            </div>
+          </div>
+          <div class="info-item" th:if="${itinerary.arrivalDate != null}">
+            <span class="label">Arrival</span>
+            <span
+              class="value"
+              th:text="${#temporals.format(itinerary.arrivalDate, 'MMMM d, yyyy')}"
+              >January 1, 2026</span
+            >
+          </div>
+          <div class="info-item" th:if="${itinerary.departureDate != null}">
+            <span class="label">Departure</span>
+            <span
+              class="value"
+              th:text="${#temporals.format(itinerary.departureDate, 'MMMM d, yyyy')}"
+              >January 1, 2026</span
+            >
+          </div>
+          <div class="info-item" th:if="${itinerary.tripPrice != null}">
+            <span class="label">Trip Price</span>
+            <span class="value" th:utext="'€' + ${itinerary.tripPrice}"
+              >€7,200</span
+            >
+          </div>
+          <p
+            style="
+              margin-top: 20px;
+              font-size: 12px;
+              font-style: italic;
+              color: #6b7280;
+              line-height: 1.5;
+            "
           >
-        </div>
-        <div class="info-item" th:if="${itinerary.tripPrice != null}">
-          <span class="label">Trip Price</span>
-          <span class="value" th:utext="'€' + ${itinerary.tripPrice}"
-            >€7,200</span
-          >
+            Price and specific inclusions subject to change until package is
+            formally reserved with deposit.
+          </p>
         </div>
       </div>
     </div>

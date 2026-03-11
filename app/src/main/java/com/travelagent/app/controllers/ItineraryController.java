@@ -165,30 +165,30 @@ public class ItineraryController {
         // Map for the specific font sizes used in the application
         // 1=Small, 3=Normal, 5=Large, 7=Huge
         java.util.Map<String, String> sizeMap = java.util.Map.of(
-            "1", "0.875em",  // Small
-            "3", "1em",      // Normal
-            "5", "1.5em",    // Large
-            "7", "2em"       // Huge
+                "1", "0.875em", // Small
+                "3", "1em", // Normal
+                "5", "1.5em", // Large
+                "7", "2em" // Huge
         );
-        
+
         // Replace each size value with proper em values
         for (java.util.Map.Entry<String, String> entry : sizeMap.entrySet()) {
             String size = entry.getKey();
             String cssSize = entry.getValue();
-            
+
             // <font size="X" color="...">
             html = html.replaceAll("<font size=\"" + size + "\" color=\"([^\"]+)\">",
                     "<span style=\"font-size: " + cssSize + "; color: $1;\">");
-            
+
             // <font color="..." size="X">
             html = html.replaceAll("<font color=\"([^\"]+)\" size=\"" + size + "\">",
                     "<span style=\"color: $1; font-size: " + cssSize + ";\">");
-            
+
             // <font size="X">
             html = html.replaceAll("<font size=\"" + size + "\">",
                     "<span style=\"font-size: " + cssSize + ";\">");
         }
-        
+
         return html;
     }
 
@@ -214,10 +214,14 @@ public class ItineraryController {
                 if (dto.getImageNames() != null && !dto.getImageNames().isEmpty()) {
                     for (String imageName : dto.getImageNames()) {
                         try {
-                            String signedUrl = gcsImageService.getSignedUrl(imageName);
-                            dto.getImageUrls().add(signedUrl);
+                            // Use compressed image data URLs instead of signed URLs
+                            // Max width 1800px to maintain original size, 60% JPEG quality for compression
+                            String compressedDataUrl = gcsImageService.getCompressedImageDataUrl(imageName, 1800, 0.6f);
+                            if (compressedDataUrl != null) {
+                                dto.getImageUrls().add(compressedDataUrl);
+                            }
                         } catch (Exception e) {
-                            System.err.println("Warning: Failed to generate signed URL for image: " + imageName);
+                            System.err.println("Warning: Failed to compress image: " + imageName);
                         }
                     }
                 }
@@ -237,19 +241,28 @@ public class ItineraryController {
         allDateItemDtos.sort(Comparator.comparing(DateItemDto::getPriority));
 
         if (itinerary.getImageName() != null) {
-            String signedUrl = gcsImageService.getSignedUrl(itinerary.getImageName());
-            itinerary.setCoverImageUrl(signedUrl);
+            // Use compressed cover image (max 2000px width to maintain size, 65% quality)
+            String compressedCoverUrl = gcsImageService.getCompressedImageDataUrl(itinerary.getImageName(), 2000,
+                    0.65f);
+            if (compressedCoverUrl != null) {
+                itinerary.setCoverImageUrl(compressedCoverUrl);
+            }
         }
 
         InputStream imgStream = getClass().getClassLoader().getResourceAsStream("static/img/edge-fade.png");
         byte[] imgBytes = imgStream.readAllBytes();
         String edgeFadeUrl = "data:image/png;base64," + Base64.getEncoder().encodeToString(imgBytes);
 
+        // Get travelers for the itinerary
+        List<Traveler> travelers = itineraryService.getTravelersForItinerary(id);
+
         // Render Thymeleaf template to HTML
         Context context = new Context();
+        // Use signed URL for logo to preserve transparency (logos are small files)
         String companyLogoUrl = gcsImageService.getSignedUrl("logo-tag.jpg");
         context.setVariable("companyLogoUrl", companyLogoUrl);
         context.setVariable("itinerary", itinerary);
+        context.setVariable("travelers", travelers);
         context.setVariable("dateItems", allDateItemDtos);
         context.setVariable("user", user);
         context.setVariable("edgeFadeUrl", edgeFadeUrl);
@@ -257,10 +270,10 @@ public class ItineraryController {
 
         // Clean up HTML for XML parsing
         html = html.replace("&nbsp;", "&#160;");
-        
+
         // Convert legacy <font size> to proper CSS (size 1-7 scale)
         html = convertFontSizeToCss(html);
-        
+
         html = html.replaceAll("<font color=\"([^\"]+)\">",
                 "<span style=\"color: $1;\">");
         html = html.replaceAll("</font>", "</span>");
@@ -289,6 +302,7 @@ public class ItineraryController {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.withHtmlContent(html, null);
             builder.toStream(pdfOutputStream);
+            builder.useFastMode();
             builder.run();
             byte[] pdfBytes = pdfOutputStream.toByteArray();
 
@@ -331,6 +345,7 @@ public class ItineraryController {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.withHtmlContent(html, null);
             builder.toStream(pdfOutputStream);
+            builder.useFastMode();
             builder.run();
             byte[] pdfBytes = pdfOutputStream.toByteArray();
 
