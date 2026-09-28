@@ -11,6 +11,7 @@ import com.travelagent.app.dto.ItineraryDto;
 import com.travelagent.app.dto.TravelerDto;
 import com.travelagent.app.services.GcsImageService;
 import com.travelagent.app.services.GcsPdfService;
+import com.travelagent.app.services.ItineraryGlanceService;
 import com.travelagent.app.services.ItineraryService;
 import com.travelagent.app.services.UserService;
 import com.travelagent.app.services.DateItemService;
@@ -32,6 +33,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/itineraries")
@@ -47,6 +49,8 @@ public class ItineraryController {
     private GcsPdfService gcsPdfService;
     @Autowired
     private SpringTemplateEngine templateEngine;
+    @Autowired
+    private ItineraryGlanceService itineraryGlanceService;
 
     public ItineraryController(ItineraryService itineraryService, UserService userService,
             DateItemService dateItemService) {
@@ -206,6 +210,10 @@ public class ItineraryController {
         dates.sort(Comparator.comparing(DateDto::getDate));
         itinerary.setDates(dates);
 
+        // Attachment links in the PDF go through the itinerary's share token, so they keep
+        // working after the PDF is downloaded or sent (signed URLs expire in 15 minutes)
+        String shareToken = itineraryService.generateShareableToken(id);
+
         // Collect all DateItemDtos for all dates in the itinerary
         List<DateItemDto> allDateItemDtos = new ArrayList<>();
         for (DateDto date : dates) {
@@ -227,12 +235,7 @@ public class ItineraryController {
                 }
 
                 if (dto.getPdfName() != null && !dto.getPdfName().isEmpty()) {
-                    try {
-                        String pdfSignedUrl = gcsPdfService.getSignedUrl(dto.getPdfName());
-                        dto.setPdfUrl(pdfSignedUrl);
-                    } catch (Exception e) {
-                        System.err.println("Warning: Failed to generate signed URL for PDF: " + dto.getPdfName());
-                    }
+                    dto.setPdfUrl(backendUrl() + "/api/itineraries/share/" + shareToken + "/attachments/" + dto.getId());
                 }
 
                 allDateItemDtos.add(dto);
@@ -289,22 +292,66 @@ public class ItineraryController {
         return html;
     }
 
+    /**
+     * Helper method to generate the short "at a glance" itinerary: a day-by-day overview plus
+     * one timeline card per day, built from the same date items as the full PDF.
+     */
+    private String generateGlanceHtml(Long id) throws Exception {
+        ItineraryDto itinerary = itineraryService.getItineraryById(id);
+        User user = userService.getUserByUsername(itinerary.getAgent());
+        List<DateDto> dates = new ArrayList<>(itinerary.getDates());
+
+        List<DateItemDto> dateItems = new ArrayList<>();
+        for (DateDto date : dates) {
+            dateItems.addAll(dateItemService.getDateItemsByDate(date.getId()));
+        }
+
+        Context context = new Context();
+        context.setVariable("itinerary", itinerary);
+        context.setVariable("days", itineraryGlanceService.buildDays(dates, dateItems));
+        context.setVariable("route", itineraryGlanceService.buildRoute(dates, dateItems));
+        String plannerName = user != null && user.getFullName() != null && !user.getFullName().isBlank()
+                ? user.getFullName().trim()
+                : null;
+        context.setVariable("plannerName", plannerName);
+        context.setVariable("plannerFirstName", plannerName == null ? "Your planner" : plannerName.split("\\s+")[0]);
+        context.setVariable("plannerInitials", plannerName == null ? ""
+                : java.util.Arrays.stream(plannerName.split("\\s+")).limit(2)
+                        .map(part -> part.substring(0, 1).toUpperCase()).reduce("", String::concat));
+        context.setVariable("plannerEmail", user != null ? user.getEmail() : null);
+        context.setVariable("plannerPhone", user != null ? user.getPhoneNumber() : null);
+        return templateEngine.process("itinerary-glance-pdf", context);
+    }
+
+    private byte[] renderPdf(String html, boolean brandFonts) {
+        java.io.ByteArrayOutputStream pdfOutputStream = new java.io.ByteArrayOutputStream();
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+        builder.withHtmlContent(html, null);
+        if (brandFonts) {
+            ItineraryGlanceService.registerBrandFonts(builder);
+        }
+        builder.toStream(pdfOutputStream);
+        builder.useFastMode();
+        try {
+            builder.run();
+        } catch (IOException e) {
+            throw new java.io.UncheckedIOException(e);
+        }
+        return pdfOutputStream.toByteArray();
+    }
+
     @GetMapping("generate-pdf/{id}")
     public ResponseEntity<StreamingResponseBody> getPdf(@PathVariable Long id,
-            @RequestParam(required = false, defaultValue = "false") boolean preview) {
-        System.out.println("=== getPdf called: id=" + id + ", preview=" + preview + " ===");
+            @RequestParam(required = false, defaultValue = "false") boolean preview,
+            @RequestParam(required = false, defaultValue = "full") String format) {
+        System.out.println("=== getPdf called: id=" + id + ", preview=" + preview + ", format=" + format + " ===");
         try {
-            String html = generatePdfHtml(id);
+            boolean glance = "glance".equalsIgnoreCase(format);
+            String html = glance ? generateGlanceHtml(id) : generatePdfHtml(id);
             String disposition = preview ? "inline" : "attachment";
 
             // Generate PDF into byte array first (synchronously) to avoid async timeout
-            java.io.ByteArrayOutputStream pdfOutputStream = new java.io.ByteArrayOutputStream();
-            PdfRendererBuilder builder = new PdfRendererBuilder();
-            builder.withHtmlContent(html, null);
-            builder.toStream(pdfOutputStream);
-            builder.useFastMode();
-            builder.run();
-            byte[] pdfBytes = pdfOutputStream.toByteArray();
+            byte[] pdfBytes = renderPdf(html, glance);
 
             // Now stream the pre-generated bytes
             StreamingResponseBody stream = outputStream -> {
@@ -320,7 +367,8 @@ public class ItineraryController {
 
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
-                    .header("Content-Disposition", disposition + "; filename=itinerary.pdf")
+                    .header("Content-Disposition",
+                            disposition + "; filename=" + (glance ? "itinerary-at-a-glance.pdf" : "itinerary.pdf"))
                     .body(stream);
         } catch (Exception e) {
             System.err.println("Unexpected error in getPdf endpoint: " + e.getMessage());
@@ -339,26 +387,15 @@ public class ItineraryController {
     public ResponseEntity<Map<String, String>> generateShareableLink(@PathVariable Long id) {
         try {
             String html = generatePdfHtml(id);
-
-            // Convert HTML to PDF bytes
-            java.io.ByteArrayOutputStream pdfOutputStream = new java.io.ByteArrayOutputStream();
-            PdfRendererBuilder builder = new PdfRendererBuilder();
-            builder.withHtmlContent(html, null);
-            builder.toStream(pdfOutputStream);
-            builder.useFastMode();
-            builder.run();
-            byte[] pdfBytes = pdfOutputStream.toByteArray();
+            byte[] pdfBytes = renderPdf(html, false);
 
             // Upload to GCS (overwrites if exists) - returns full path including subfolder
             String fileName = "itinerary-" + id + ".pdf";
             String fullPath = gcsPdfService.uploadPdfBytes(pdfBytes, fileName);
 
-            // Generate permanent share URL (backend endpoint that never expires)
-            String backendUrl = System.getenv("BACKEND_URL");
-            if (backendUrl == null || backendUrl.isEmpty()) {
-                backendUrl = "http://localhost:8080";
-            }
-            String shareableUrl = backendUrl + "/api/itineraries/share/" + id;
+            // Permanent share URL keyed by the itinerary's random token, never its sequential id,
+            // so links can't be guessed by counting through ids
+            String shareableUrl = backendUrl() + "/api/itineraries/share/" + itineraryService.generateShareableToken(id);
 
             return ResponseEntity.ok(Map.of(
                     "shareableUrl", shareableUrl,
@@ -371,16 +408,30 @@ public class ItineraryController {
         }
     }
 
-    @GetMapping("/share/{id}")
-    public ResponseEntity<Void> shareItinerary(@PathVariable Long id) {
+    @GetMapping("/share/{token}")
+    public ResponseEntity<Void> shareItinerary(@PathVariable String token) {
+        Optional<Long> itineraryId = itineraryService.findItineraryIdByToken(token);
+        if (itineraryId.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        // Construct full path to PDF in GCS (ItineraryPdfs subfolder)
+        return redirectToSignedUrl("ItineraryPdfs/itinerary-" + itineraryId.get() + ".pdf");
+    }
+
+    @GetMapping("/share/{token}/attachments/{dateItemId}")
+    public ResponseEntity<Void> shareAttachment(@PathVariable String token, @PathVariable Long dateItemId) {
+        Optional<String> pdfName = itineraryService.findItineraryIdByToken(token)
+                .flatMap(itineraryId -> dateItemService.getAttachmentNameForItinerary(dateItemId, itineraryId));
+        if (pdfName.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return redirectToSignedUrl(pdfName.get());
+    }
+
+    private ResponseEntity<Void> redirectToSignedUrl(String path) {
         try {
-            // Construct full path to PDF in GCS (ItineraryPdfs subfolder)
-            String fullPath = "ItineraryPdfs/itinerary-" + id + ".pdf";
-
             // Generate a fresh signed URL (15 minutes is fine for immediate redirect)
-            String signedUrl = gcsPdfService.getSignedUrl(fullPath);
-
-            // Redirect to the signed URL
+            String signedUrl = gcsPdfService.getSignedUrl(path);
             return ResponseEntity.status(HttpStatus.FOUND)
                     .location(java.net.URI.create(signedUrl))
                     .build();
@@ -389,5 +440,10 @@ public class ItineraryController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+
+    private static String backendUrl() {
+        String backendUrl = System.getenv("BACKEND_URL");
+        return backendUrl == null || backendUrl.isEmpty() ? "http://localhost:8080" : backendUrl;
     }
 }

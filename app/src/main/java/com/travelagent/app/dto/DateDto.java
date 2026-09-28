@@ -5,6 +5,7 @@ public class DateDto {
     private String name;
     private String location;
     private String date;
+    private String plannerNote;
 
     public DateDto() {
     }
@@ -38,6 +39,14 @@ public class DateDto {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getPlannerNote() {
+        return plannerNote;
+    }
+
+    public void setPlannerNote(String plannerNote) {
+        this.plannerNote = plannerNote;
     }
 
     public String getDate() {

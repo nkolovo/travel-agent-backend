@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <title th:text="${itinerary.name} + ' - At a glance'">At a glance</title>
+    <style>
+      /* Personally Travel brand palette (matches personally.travel) */
+      @page {
+        margin: 16mm 15mm 20mm 15mm;
+        @bottom-center {
+          content: element(footer);
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "DM Sans", sans-serif;
+        font-size: 10pt;
+        line-height: 1.45;
+        color: #1d2430;
+      }
+      h1,
+      h2,
+      .serif {
+        font-family: "Fraunces", serif;
+        font-weight: 400;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      td {
+        vertical-align: top;
+        padding: 0;
+      }
+
+      /* ---------- Footer ---------- */
+      .footer {
+        position: running(footer);
+        font-size: 7.5pt;
+        color: #7a7166;
+        border-top: 1px solid #e8d9bf;
+        padding-top: 6px;
+      }
+      .footer .page-number::after {
+        content: counter(page) " / " counter(pages);
+      }
+
+      /* ---------- Cover ---------- */
+      .wordmark {
+        font-family: "Fraunces", serif;
+        font-size: 15pt;
+        font-weight: 600;
+      }
+      .wordmark em {
+        font-style: italic;
+        font-weight: 400;
+        color: #c94a1f;
+      }
+      .reservation {
+        text-align: right;
+        font-size: 8pt;
+        color: #7a7166;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+      .reservation b {
+        color: #1d2430;
+        letter-spacing: 0.5px;
+      }
+      .eyebrow {
+        margin: 26px 0 6px 0;
+        font-size: 8pt;
+        font-weight: 700;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: #c94a1f;
+      }
+      h1 {
+        margin: 0 0 6px 0;
+        font-size: 28pt;
+        line-height: 1.1;
+      }
+      .meta {
+        font-size: 10.5pt;
+        color: #464c57;
+        margin-bottom: 16px;
+      }
+      .route {
+        margin-bottom: 18px;
+      }
+      .stop {
+        display: inline-block;
+        background: #f3e9d8;
+        border-radius: 100px;
+        padding: 4px 11px;
+        font-size: 9pt;
+        font-weight: 600;
+        margin: 0 2px 5px 0;
+      }
+      .stop span {
+        font-weight: 400;
+        color: #7a7166;
+      }
+      .route-arrow {
+        color: #c94a1f;
+        font-weight: 700;
+        margin: 0 4px 0 2px;
+      }
+
+      .planner {
+        background: #fbf7f0;
+        border: 1px solid #e8d9bf;
+        border-radius: 14px;
+        padding: 12px 14px;
+        margin-bottom: 22px;
+      }
+      .initials {
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
+        background: #c94a1f;
+        color: #ffffff;
+        text-align: center;
+        font-weight: 700;
+        font-size: 11pt;
+        line-height: 40px;
+      }
+      .planner-name {
+        font-weight: 700;
+        font-size: 10.5pt;
+      }
+      .planner-sub {
+        font-size: 9pt;
+        color: #464c57;
+      }
+
+      .section-label {
+        font-size: 8pt;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #7a7166;
+        margin: 0 0 8px 0;
+      }
+      .overview td {
+        border-bottom: 1px solid #efe4d2;
+        padding: 7px 8px 7px 0;
+        font-size: 9pt;
+      }
+      .overview .ov-day {
+        width: 42px;
+      }
+      .overview .ov-date {
+        width: 78px;
+        color: #464c57;
+      }
+      .overview .ov-where {
+        width: 150px;
+        font-weight: 600;
+      }
+      .overview .ov-plan {
+        color: #464c57;
+      }
+      .ov-badge {
+        display: inline-block;
+        white-space: nowrap;
+        background: #1d2430;
+        color: #ffffff;
+        border-radius: 100px;
+        padding: 1px 7px;
+        font-size: 7.5pt;
+        font-weight: 700;
+      }
+      .ov-sep {
+        color: #c94a1f;
+      }
+      .disclaimer {
+        margin-top: 14px;
+        font-size: 7.5pt;
+        font-style: italic;
+        color: #7a7166;
+      }
+
+      /* ---------- Day cards ---------- */
+      .days {
+        page-break-before: always;
+      }
+      .day {
+        background: #fffdf8;
+        border: 1px solid #e8d9bf;
+        border-radius: 16px;
+        padding: 14px 18px 16px 18px;
+        margin-bottom: 14px;
+        page-break-inside: avoid;
+      }
+      .day-badge {
+        display: inline-block;
+        white-space: nowrap;
+        background: #1d2430;
+        color: #ffffff;
+        border-radius: 100px;
+        padding: 2px 9px;
+        font-size: 7.5pt;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-right: 6px;
+      }
+      .day-date {
+        font-size: 9pt;
+        font-weight: 600;
+        color: #464c57;
+      }
+      .day-place {
+        text-align: right;
+        font-size: 7.5pt;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #1f6e8c;
+      }
+      h2 {
+        margin: 8px 0 12px 0;
+        font-size: 16pt;
+        line-height: 1.2;
+      }
+      .t-time {
+        width: 50px;
+        padding-top: 1px;
+        font-size: 9pt;
+        font-weight: 700;
+        color: #7a7166;
+      }
+      .t-body {
+        position: relative;
+        border-left: 1.5px dashed #e8d9bf;
+        padding: 0 0 11px 16px;
+      }
+      .timeline tr.last .t-body {
+        padding-bottom: 2px;
+      }
+      .dot {
+        position: absolute;
+        left: -6px;
+        top: 3px;
+        width: 11px;
+        height: 11px;
+        border-radius: 6px;
+        border: 2px solid #c94a1f;
+        background: #fffdf8;
+      }
+      .t-kind {
+        font-size: 6.5pt;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #c94a1f;
+      }
+      .t-kind.flight,
+      .t-kind.ferry {
+        color: #1f6e8c;
+      }
+      .t-kind.transfer {
+        color: #56633a;
+      }
+      .t-kind.stay {
+        color: #a83a14;
+      }
+      .t-kind.free {
+        color: #b8860b;
+      }
+      .t-what {
+        font-size: 10.5pt;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      .t-detail {
+        font-size: 8.5pt;
+        color: #464c57;
+        margin-top: 1px;
+      }
+
+      .note {
+        margin: 12px 0 0 auto;
+        width: 60%;
+        background: #fbe3b0;
+        border-radius: 3px 14px 14px 14px;
+        padding: 9px 12px 8px 12px;
+        transform: rotate(1.2deg);
+      }
+      .note p {
+        margin: 0;
+        font-family: "Caveat", serif;
+        font-style: normal;
+        font-size: 13pt;
+        line-height: 1.2;
+      }
+      .note .sig {
+        font-family: "Caveat", serif;
+        font-style: normal;
+        font-size: 11pt;
+        color: #a83a14;
+        margin-top: 2px;
+      }
+      .reading {
+        margin-top: 10px;
+        font-size: 8pt;
+        color: #7a7166;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="footer">
+      <table>
+        <tr>
+          <td>
+            <span class="serif">Personally <i>Travel</i></span>
+            <span th:if="${plannerName != null}" th:text="${'  ·  ' + plannerName}"></span>
+            <span th:if="${plannerPhone != null}" th:text="${'  ·  ' + plannerPhone}"></span>
+            <span th:if="${plannerEmail != null}" th:text="${'  ·  ' + plannerEmail}"></span>
+          </td>
+          <td style="text-align: right; width: 60px"><span class="page-number"></span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ===== Cover + overview ===== -->
+    <table>
+      <tr>
+        <td class="wordmark">Personally <em>Travel</em></td>
+        <td class="reservation" th:if="${itinerary.reservationNumber != null}">
+          Reservation <b th:text="${itinerary.reservationNumber}">PG000000</b>
+        </td>
+      </tr>
+    </table>
+
+    <div class="eyebrow">Your trip at a glance</div>
+    <h1 th:text="${itinerary.name}">Itinerary name</h1>
+    <div class="meta">
+      <span
+        th:if="${itinerary.arrivalDate != null and itinerary.departureDate != null}"
+        th:text="${#temporals.format(itinerary.arrivalDate, 'EEE d MMM') + ' – ' + #temporals.format(itinerary.departureDate, 'EEE d MMM yyyy')}"
+        >Sat 26 Sep – Mon 5 Oct 2026</span
+      >
+      <span th:text="${'  ·  ' + days.size() + (days.size() == 1 ? ' day' : ' days')}">· 10 days</span>
+      <span
+        th:if="${itinerary.numTravelers > 0}"
+        th:text="${'  ·  ' + itinerary.numTravelers + (itinerary.numTravelers == 1 ? ' traveller' : ' travellers')}"
+        >· 4 travellers</span
+      >
+    </div>
+
+    <div class="route" th:if="${!route.isEmpty()}">
+      <th:block th:each="stop, s : ${route}">
+        <span class="stop"
+          ><th:block th:text="${stop.place()}">Athens</th:block
+          ><span
+            th:if="${stop.nights() != null}"
+            th:text="${'  ' + stop.nights() + (stop.nights() == 1 ? ' night' : ' nights')}"
+          ></span></span
+        ><span class="route-arrow" th:if="${!s.last}">›</span>
+      </th:block>
+    </div>
+
+    <div class="planner" th:if="${plannerName != null}">
+      <table>
+        <tr>
+          <td style="width: 52px">
+            <div class="initials" th:text="${plannerInitials}">CL</div>
+          </td>
+          <td>
+            <div class="planner-name" th:text="${'Planned personally by ' + plannerName}">Planned by</div>
+            <div class="planner-sub">
+              <span th:if="${plannerPhone != null}" th:text="${plannerPhone + ' (WhatsApp)'}"></span>
+              <span th:if="${plannerPhone != null and plannerEmail != null}">  ·  </span>
+              <span th:if="${plannerEmail != null}" th:text="${plannerEmail}"></span>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="section-label">Day by day</div>
+    <table class="overview">
+      <tr th:each="day : ${days}">
+        <td class="ov-day"><span class="ov-badge" th:text="${day.number()}">1</span></td>
+        <td class="ov-date" th:text="${#temporals.format(day.date(), 'EEE d MMM')}">Sat 26 Sep</td>
+        <td class="ov-where" th:text="${day.title()}">Arrival in Athens</td>
+        <td class="ov-plan">
+          <th:block th:each="h, hs : ${day.highlights()}"
+            ><th:block th:text="${h}"></th:block
+            ><span class="ov-sep" th:if="${!hs.last}">  ·  </span></th:block
+          >
+        </td>
+      </tr>
+    </table>
+    <div class="disclaimer">
+      Times, suppliers and references are as confirmed at the time of writing. Your full itinerary has
+      every detail, and your planner is always a message away if anything changes.
+    </div>
+
+    <!-- ===== Day cards ===== -->
+    <div class="days">
+      <div class="day" th:each="day : ${days}">
+        <table>
+          <tr>
+            <td>
+              <span class="day-badge" th:text="${'DAY ' + day.number()}">DAY 1</span>
+              <span class="day-date" th:text="${#temporals.format(day.date(), 'EEEE d MMMM')}"
+                >Saturday 26 September</span
+              >
+            </td>
+            <td class="day-place" th:if="${day.location() != null}" th:text="${day.location()}">Athens</td>
+          </tr>
+        </table>
+        <h2 th:text="${day.title()}">Arrival in Athens</h2>
+
+        <table class="timeline" th:if="${!day.entries().isEmpty()}">
+          <tr th:each="e, es : ${day.entries()}" th:class="${es.last} ? 'last' : ''">
+            <td class="t-time" th:text="${e.time()}">06:30</td>
+            <td class="t-body">
+              <div class="dot"></div>
+              <div th:class="${'t-kind ' + e.kind().cssClass()}" th:text="${e.kind().label()}">Flight</div>
+              <div class="t-what" th:text="${e.title()}">Skopje to Athens</div>
+              <div class="t-detail" th:if="${e.detail() != null}" th:text="${e.detail()}">Aegean A3985 · Ref 9794N7</div>
+            </td>
+          </tr>
+        </table>
+
+        <div class="note" th:if="${day.plannerNote() != null}">
+          <p th:text="${day.plannerNote()}">Note</p>
+          <div class="sig" th:text="${'— ' + plannerFirstName}">— Chris</div>
+        </div>
+
+        <div class="reading" th:if="${!day.reading().isEmpty()}">
+          Worth a read in your full itinerary:
+          <th:block th:each="r, rs : ${day.reading()}"
+            ><th:block th:text="${r}"></th:block><th:block th:if="${!rs.last}">, </th:block></th:block
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

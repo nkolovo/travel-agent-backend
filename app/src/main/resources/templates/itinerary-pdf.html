@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <title th:text="${itinerary.name} + ' - Itinerary'">Itinerary</title>
     <style>
+      /* Personally Travel brand palette (matches personally.travel) */
       :root {
-        --text: #1a1a1a;
-        --muted: #6b7280; /* gray-500 */
-        --border: #e5e7eb; /* gray-200 */
-        --accent: #111827; /* gray-900 */
-        --chip-bg: #f9fafb; /* gray-50 */
+        --text: #1d2430; /* ink */
+        --muted: #7a7166;
+        --border: #e8d9bf; /* sand */
+        --accent: #c94a1f; /* terracotta */
+        --chip-bg: #fbf7f0; /* limewash */
       }
 
       html,
@@ -30,7 +31,7 @@
           Arial,
           "Apple Color Emoji",
           "Segoe UI Emoji";
-        color: var(--text);
+        color: #1d2430;
         margin: 0 auto;
         padding: 40px 28px 70px 28px;
         max-width: 960px;
@@ -78,8 +79,8 @@
         display: table-cell;
         width: 50%;
         padding: 24px 26px;
-        background: #fefce8;
-        border: 1px solid #fef3c7;
+        background: #f3e9d8;
+        border: 1px solid #e8d9bf;
         border-radius: 8px;
         vertical-align: top;
       }
@@ -100,7 +101,7 @@
         font-size: 12px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        color: var(--muted);
+        color: #7a7166;
         margin-bottom: 4px;
       }
       .info-item .value {
@@ -115,8 +116,8 @@
         width: 50%;
         text-align: left;
         padding: 24px 26px;
-        background: #eff6ff;
-        border: 1px solid #dbeafe;
+        background: #fbf7f0;
+        border: 1px solid #e8d9bf;
         border-radius: 8px;
         vertical-align: top;
       }
@@ -129,14 +130,14 @@
       .company-info p {
         margin: 10px 0;
         font-size: 16px;
-        color: var(--muted);
+        color: #464c57;
         line-height: 1.6;
       }
       .company-info p:first-of-type {
         margin-top: 0;
       }
       .company-info a {
-        color: #4a90e2;
+        color: #c94a1f;
         text-decoration: none;
       }
 
@@ -178,7 +179,7 @@
       .dateitem {
         margin: 14px 0 18px 0;
         padding: 14px 16px;
-        border: 1px solid var(--border);
+        border: 1px solid #e8d9bf;
         border-radius: 12px;
         background: #fff;
       }
@@ -188,7 +189,7 @@
         font-size: 18px;
         margin: 12px 0 8px;
         padding-left: 8px;
-        border-left: 3px solid #4a90e2; /* narrow colored bar */
+        border-left: 3px solid #c94a1f; /* narrow terracotta bar */
       }
       .dateitem-image {
         max-height: 450px;
@@ -208,17 +209,18 @@
 
       .pdf-link {
         display: inline-block;
+        white-space: nowrap;
         padding: 8px 12px;
-        background-color: #f3f4f6;
-        color: #1f2937;
+        background-color: #fbf7f0;
+        color: #a83a14;
         text-decoration: none;
         border-radius: 6px;
-        border: 1px solid #d1d5db;
+        border: 1px solid #c94a1f;
         font-weight: 500;
       }
 
       .pdf-link:hover {
-        background-color: #e5e7eb;
+        background-color: #f3e9d8;
       }
 
       .dateitem .description {
@@ -242,10 +244,10 @@
         background: white;
         font-size: 11px;
         font-style: italic;
-        color: #374151;
+        color: #464c57;
         text-align: center;
         padding: 8px 15px;
-        border-bottom: 1px solid #e5e7eb;
+        border-bottom: 1px solid #e8d9bf;
         line-height: 1.2;
       }
 
@@ -253,10 +255,10 @@
         display: table;
         position: running(footer);
         padding: 8px 0;
-        border-top: 1px solid #e5e7eb;
+        border-top: 1px solid #e8d9bf;
         background: white;
         font-size: 11px;
-        color: #374151;
+        color: #464c57;
         width: 100%;
         table-layout: fixed;
       }
@@ -436,7 +438,7 @@
                 >
                 <span
                   th:if="${traveler.isLead}"
-                  style="color: #6b7280; font-size: 14px"
+                  style="color: #7a7166; font-size: 14px"
                 >
                   (Lead)</span
                 >
@@ -459,18 +461,19 @@
               >January 1, 2026</span
             >
           </div>
-          <div class="info-item" th:if="${itinerary.tripPrice != null}">
+          <div class="info-item" th:if="${itinerary.tripPrice > 0}">
             <span class="label">Trip Price</span>
-            <span class="value" th:utext="'€' + ${itinerary.tripPrice}"
+            <span class="value" th:text="${'€' + #numbers.formatInteger(itinerary.tripPrice, 1, 'COMMA')}"
               >€7,200</span
             >
           </div>
           <p
+            th:if="${itinerary.tripPrice > 0}"
             style="
               margin-top: 20px;
               font-size: 12px;
               font-style: italic;
-              color: #6b7280;
+              color: #7a7166;
               line-height: 1.5;
             "
           >
@@ -500,7 +503,7 @@
         <div th:if="${dateItem.pdfUrl != null and !dateItem.pdfUrl.isEmpty()}">
           <div class="pdf-link-container">
             <a th:href="${dateItem.pdfUrl}" target="_blank" class="pdf-link">
-              📄 View PDF Document
+              View attached document
             </a>
           </div>
         </div>

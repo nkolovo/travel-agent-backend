@@ -88,6 +88,7 @@ public class ItineraryService {
                         dateDto.setName(date.getName());
                         dateDto.setLocation(date.getLocation());
                         dateDto.setDate(date.getDate());
+                        dateDto.setPlannerNote(date.getPlannerNote());
                         return dateDto;
                     })
                     .toList();
@@ -360,6 +361,10 @@ public class ItineraryService {
         existingDate.setName(dateDto.getName());
         existingDate.setLocation(dateDto.getLocation());
         existingDate.setDate(dateDto.getDate());
+        // Only overwrite when sent, so clients that don't know this field can't wipe it
+        if (dateDto.getPlannerNote() != null) {
+            existingDate.setPlannerNote(dateDto.getPlannerNote());
+        }
 
         Date savedDate = dateRepository.save(existingDate);
         return mapToDateDto(savedDate);
@@ -510,6 +515,7 @@ public class ItineraryService {
         dateDto.setName(date.getName());
         dateDto.setLocation(date.getLocation());
         dateDto.setDate(date.getDate());
+        dateDto.setPlannerNote(date.getPlannerNote());
         return dateDto;
     }
 
@@ -525,6 +531,14 @@ public class ItineraryService {
         }
 
         return itinerary.getShareableToken();
+    }
+
+    /** The itinerary id behind a public share token, if the token is valid. */
+    public java.util.Optional<Long> findItineraryIdByToken(String token) {
+        if (token == null || token.isBlank()) {
+            return java.util.Optional.empty();
+        }
+        return itineraryRepository.findByShareableToken(token).map(Itinerary::getId);
     }
 
     public ItineraryDto getItineraryByToken(String token) {
