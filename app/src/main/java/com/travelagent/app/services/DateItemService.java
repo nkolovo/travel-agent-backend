@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DateItemService {
@@ -29,6 +30,18 @@ public class DateItemService {
 
     public List<DateItem> getDateItems(Long dateId, Long itemId) {
         return dateItemRepository.findByDateIdAndItemId(dateId, itemId);
+    }
+
+    /**
+     * The attached PDF of a date item, but only if that item belongs to the given itinerary,
+     * so a share token can never be used to reach another client's documents.
+     */
+    public Optional<String> getAttachmentNameForItinerary(Long dateItemId, Long itineraryId) {
+        return dateItemRepository.findById(dateItemId)
+                .filter(di -> di.getDate() != null && di.getDate().getItinerary() != null
+                        && itineraryId.equals(di.getDate().getItinerary().getId()))
+                .map(DateItem::getPdfName)
+                .filter(name -> !name.isBlank());
     }
 
     public List<DateItemDto> getDateItemsByDate(Long dateId) {

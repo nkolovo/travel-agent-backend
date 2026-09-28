@@ -20,6 +20,10 @@ public class Date {
     private String location;
     private String date;
 
+    // Client-facing note from the planner, shown handwritten in the at-a-glance PDF
+    @Column(columnDefinition = "TEXT")
+    private String plannerNote;
+
     @ManyToOne
     @JoinColumn(name = "itinerary_id", nullable = false)
     @JsonBackReference("itinerary-date")
@@ -56,6 +60,14 @@ public class Date {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getPlannerNote() {
+        return plannerNote;
+    }
+
+    public void setPlannerNote(String plannerNote) {
+        this.plannerNote = plannerNote;
     }
 
     public String getLocation() {
