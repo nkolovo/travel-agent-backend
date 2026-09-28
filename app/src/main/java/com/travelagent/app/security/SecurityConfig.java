@@ -43,7 +43,9 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .authorizeHttpRequests(auth -> auth
                         .shouldFilterAllDispatcherTypes(false) // Don't re-authorize on async/error dispatches
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/logout").permitAll()
+                        // Everything else under /api/auth creates, changes or deletes accounts
+                        .requestMatchers("/api/auth/**").hasAuthority("ADMIN")
                         .requestMatchers("/error").permitAll() // Allow error page (for async responses)
                         .requestMatchers("/api/itineraries/share/**").permitAll() // Public shareable links
                         .requestMatchers("/api/users/**").hasAuthority("ADMIN")

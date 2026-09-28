@@ -6,9 +6,11 @@ import com.travelagent.app.services.RoleService;
 import com.travelagent.app.services.UserService;
 import com.travelagent.app.security.JwtUtil;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
@@ -33,6 +35,8 @@ public class AuthController {
     public String register(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String password = request.get("password");
+        requireNonBlank(username, "username");
+        requireNonBlank(password, "password");
 
         // Set user fields for creation
         User user = new User();
@@ -51,10 +55,18 @@ public class AuthController {
     public String update(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String password = request.get("password");
+        requireNonBlank(password, "password");
         User user = userService.getUserByUsername(username);
-        user.setPassword(password);
+        // Store the hash; login compares against BCrypt, so a plain-text password would lock the user out
+        user.setPassword(passwordEncoder.encode(password));
         userService.saveUser(user);
         return "User password updated successfully!";
+    }
+
+    private static void requireNonBlank(String value, String field) {
+        if (value == null || value.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + " is required");
+        }
     }
 
     @PostMapping("/delete")
